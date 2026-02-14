@@ -23,9 +23,22 @@ class AgentConfigLike(Protocol):
     tools: Sequence[object] | None
 
 
+class SequentialAgentLike(Protocol):
+    """Minimal sequential agent surface for integration assertions."""
+
+    name: str
+    description: str | None
+    sub_agents: Sequence[Any]
+
+
 def as_agent_config(agent: object) -> AgentConfigLike:
     """Treat runtime agent instances as a typed config surface."""
     return cast(AgentConfigLike, agent)
+
+
+def as_sequential_agent(agent: object) -> SequentialAgentLike:
+    """Treat sequential agent instances as a typed surface."""
+    return cast(SequentialAgentLike, agent)
 
 
 class TestAppIntegration:
@@ -57,53 +70,116 @@ class TestAgentIntegration:
     """Pattern-based integration tests for Agent configuration."""
 
     def test_agent_has_required_configuration(self) -> None:
-        """Verify agent has required configuration fields."""
+        """Verify root agent (SequentialAgent) has required configuration."""
         agent = app.root_agent
         assert agent is not None
-        typed_agent = as_agent_config(agent)
 
-        # Required: agent name
-        assert typed_agent.name is not None
-        assert isinstance(typed_agent.name, str)
-        assert len(typed_agent.name) > 0
+        # SequentialAgent has name and description
+        assert agent.name is not None
+        assert isinstance(agent.name, str)
+        assert len(agent.name) > 0
 
-        # Required: agent model
-        assert typed_agent.model is not None
-        # model can be a string name or a model object (e.g. LiteLlm)
-        if isinstance(typed_agent.model, str):
-            assert len(typed_agent.model) > 0
-        else:
-            # If it's an object, it should have a model attribute that is a string
-            assert hasattr(typed_agent.model, "model")
-            assert isinstance(typed_agent.model.model, str)
-            assert len(typed_agent.model.model) > 0
+        # SequentialAgent has sub_agents
+        sequential_agent = as_sequential_agent(agent)
+        assert sequential_agent.sub_agents is not None
+        assert len(sequential_agent.sub_agents) >= 1
 
-    def test_agent_instructions_are_valid_if_configured(self) -> None:
-        """Verify agent instructions (if configured) are valid strings."""
+    def test_sub_agents_have_valid_configuration(self) -> None:
+        """Verify sub-agents have valid model and instruction configuration."""
         agent = app.root_agent
         assert agent is not None
-        typed_agent = as_agent_config(agent)
+        sequential_agent = as_sequential_agent(agent)
 
-        # Instruction is optional - if configured, should be non-empty string
-        if typed_agent.instruction is not None:
-            assert isinstance(typed_agent.instruction, str)
-            assert len(typed_agent.instruction) > 0
+        # Check each sub-agent (writer and publisher)
+        for sub_agent in sequential_agent.sub_agents:
+            typed_sub = as_agent_config(sub_agent)
 
-        # Description is optional - if configured, should be non-empty string
-        if typed_agent.description is not None:
-            assert isinstance(typed_agent.description, str)
-            assert len(typed_agent.description) > 0
+            # Each sub-agent should have a name
+            assert typed_sub.name is not None
+            assert isinstance(typed_sub.name, str)
+            assert len(typed_sub.name) > 0
 
-    def test_agent_tools_are_valid_if_configured(self) -> None:
-        """Verify agent tools (if any) are properly initialized."""
+            # Each sub-agent should have a model
+            assert typed_sub.model is not None
+            if isinstance(typed_sub.model, str):
+                assert len(typed_sub.model) > 0
+            else:
+                # If it's an object, it should have a model attribute
+                assert hasattr(typed_sub.model, "model")
+                assert isinstance(typed_sub.model.model, str)
+                assert len(typed_sub.model.model) > 0
+
+    def test_sub_agents_have_valid_instructions(self) -> None:
+        """Verify sub-agents have valid instructions and descriptions."""
         agent = app.root_agent
         assert agent is not None
-        typed_agent = as_agent_config(agent)
+        sequential_agent = as_sequential_agent(agent)
 
-        # Tools are optional - if configured, should be a list
-        if typed_agent.tools is not None:
-            assert isinstance(typed_agent.tools, list)
-            # Each tool should be an object instance
-            for tool in typed_agent.tools:
-                assert tool is not None
-                assert hasattr(tool, "__class__")
+        for sub_agent in sequential_agent.sub_agents:
+            typed_sub = as_agent_config(sub_agent)
+
+            # Each sub-agent should have instructions
+            if typed_sub.instruction is not None:
+                assert isinstance(typed_sub.instruction, str)
+                assert len(typed_sub.instruction) > 0
+
+            # Each sub-agent should have a description
+            if typed_sub.description is not None:
+                assert isinstance(typed_sub.description, str)
+                assert len(typed_sub.description) > 0
+
+    def test_sub_agents_have_valid_tools(self) -> None:
+        """Verify sub-agents have properly configured tools."""
+        agent = app.root_agent
+        assert agent is not None
+        sequential_agent = as_sequential_agent(agent)
+
+        for sub_agent in sequential_agent.sub_agents:
+            typed_sub = as_agent_config(sub_agent)
+
+            # Tools should be a list if configured
+            if typed_sub.tools is not None:
+                assert isinstance(typed_sub.tools, list)
+                for tool in typed_sub.tools:
+                    assert tool is not None
+                    assert hasattr(tool, "__class__")
+
+    def test_writer_agent_has_save_tool(self) -> None:
+        """Verify writer agent has the save_blog_content tool."""
+        agent = app.root_agent
+        assert agent is not None
+        sequential_agent = as_sequential_agent(agent)
+
+        # Find the writer agent
+        writer_agent = None
+        for sub_agent in sequential_agent.sub_agents:
+            if sub_agent.name == "blog_writer":
+                writer_agent = sub_agent
+                break
+
+        assert writer_agent is not None, "blog_writer agent not found"
+        typed_writer = as_agent_config(writer_agent)
+
+        # Writer should have tools
+        assert typed_writer.tools is not None
+        assert len(typed_writer.tools) >= 1
+
+    def test_publisher_agent_has_publish_tool(self) -> None:
+        """Verify publisher agent has the publish_blog_to_github tool."""
+        agent = app.root_agent
+        assert agent is not None
+        sequential_agent = as_sequential_agent(agent)
+
+        # Find the publisher agent
+        publisher_agent = None
+        for sub_agent in sequential_agent.sub_agents:
+            if sub_agent.name == "blog_publisher":
+                publisher_agent = sub_agent
+                break
+
+        assert publisher_agent is not None, "blog_publisher agent not found"
+        typed_publisher = as_agent_config(publisher_agent)
+
+        # Publisher should have tools
+        assert typed_publisher.tools is not None
+        assert len(typed_publisher.tools) >= 1
