@@ -101,7 +101,7 @@ branch = true
 omit = [
     "src/blog_agent/**/__init__.py",
     "src/blog_agent/server.py",
-    "src/blog_agent/**/blog_agent.py",
+    "src/blog_agent/**/agent.py",
     "src/blog_agent/utils/observability.py",
 ]
 
