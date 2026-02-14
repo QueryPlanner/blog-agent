@@ -111,6 +111,9 @@ jobs:
             LOG_LEVEL=INFO
             PORT=8080
             HOST=0.0.0.0
+            BLOG_GITHUB_TOKEN=${{ secrets.BLOG_GITHUB_TOKEN }}
+            BLOG_REPO_OWNER=${{ vars.BLOG_REPO_OWNER }}
+            BLOG_REPO_NAME=${{ vars.BLOG_REPO_NAME }}
             EOF
 
             # 4. Deploy
