@@ -179,7 +179,7 @@ class TestReturnGlobalInstruction:
         """Test that function signature accepts ReadonlyContext as required by ADK."""
         # Create a context with state to ensure it's accessible if needed
         context = MockReadonlyContext(
-            blog_agent_name="test_blog_agent",
+            agent_name="test_blog_agent",
             invocation_id="test-123",
             state={"user_id": "user_456", "preferences": {"theme": "dark"}},
         )

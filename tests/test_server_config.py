@@ -22,7 +22,7 @@ def mock_dependencies() -> Generator[MagicMock]:
         mock_env.session_uri = "postgresql://user:pass@localhost/db"
         mock_env.allow_origins_list = ["*"]
         mock_env.serve_web_interface = True
-        mock_env.reload_blog_agents = False
+        mock_env.reload_agents = False
 
         # Helper to support .host and .port access if needed
         mock_env.host = "127.0.0.1"

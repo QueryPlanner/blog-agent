@@ -5,7 +5,7 @@ from typing import cast
 
 import pytest
 from conftest import MockMemoryCallbackContext
-from google.adk.blog_agents.callback_context import CallbackContext
+from google.adk.agents.callback_context import CallbackContext
 
 from blog_agent.callbacks import add_session_to_memory
 

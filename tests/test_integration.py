@@ -28,7 +28,7 @@ class SequentialAgentLike(Protocol):
 
     name: str
     description: str | None
-    sub_blog_agents: Sequence[Any]
+    sub_agents: Sequence[Any]
 
 
 def as_blog_agent_config(blog_agent: object) -> AgentConfigLike:
@@ -51,9 +51,9 @@ class TestAppIntegration:
         assert isinstance(app.name, str)
         assert len(app.name) > 0
 
-    def test_app_has_root_blog_agent(self) -> None:
+    def test_app_has_root_agent(self) -> None:
         """Verify app is wired to root blog_agent."""
-        assert app.root_blog_agent is not None
+        assert app.root_agent is not None
 
     def test_app_plugins_are_valid_if_configured(self) -> None:
         """Verify plugins (if any) are properly initialized."""
@@ -71,7 +71,7 @@ class TestAgentIntegration:
 
     def test_blog_agent_has_required_configuration(self) -> None:
         """Verify root blog_agent (SequentialAgent) has required configuration."""
-        blog_agent = app.root_blog_agent
+        blog_agent = app.root_agent
         assert blog_agent is not None
 
         # SequentialAgent has name and description
@@ -79,19 +79,19 @@ class TestAgentIntegration:
         assert isinstance(blog_agent.name, str)
         assert len(blog_agent.name) > 0
 
-        # SequentialAgent has sub_blog_agents
+        # SequentialAgent has sub_agents
         sequential_blog_agent = as_sequential_blog_agent(blog_agent)
-        assert sequential_blog_agent.sub_blog_agents is not None
-        assert len(sequential_blog_agent.sub_blog_agents) >= 1
+        assert sequential_blog_agent.sub_agents is not None
+        assert len(sequential_blog_agent.sub_agents) >= 1
 
-    def test_sub_blog_agents_have_valid_configuration(self) -> None:
-        """Verify sub-blog_agents have valid model and instruction configuration."""
-        blog_agent = app.root_blog_agent
+    def test_sub_agents_have_valid_configuration(self) -> None:
+        """Verify sub-agents have valid model and instruction configuration."""
+        blog_agent = app.root_agent
         assert blog_agent is not None
         sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
         # Check each sub-blog_agent (writer and publisher)
-        for sub_blog_agent in sequential_blog_agent.sub_blog_agents:
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
             typed_sub = as_blog_agent_config(sub_blog_agent)
 
             # Each sub-blog_agent should have a name
@@ -109,13 +109,13 @@ class TestAgentIntegration:
                 assert isinstance(typed_sub.model.model, str)
                 assert len(typed_sub.model.model) > 0
 
-    def test_sub_blog_agents_have_valid_instructions(self) -> None:
-        """Verify sub-blog_agents have valid instructions and descriptions."""
-        blog_agent = app.root_blog_agent
+    def test_sub_agents_have_valid_instructions(self) -> None:
+        """Verify sub-agents have valid instructions and descriptions."""
+        blog_agent = app.root_agent
         assert blog_agent is not None
         sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
-        for sub_blog_agent in sequential_blog_agent.sub_blog_agents:
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
             typed_sub = as_blog_agent_config(sub_blog_agent)
 
             # Each sub-blog_agent should have instructions
@@ -128,13 +128,13 @@ class TestAgentIntegration:
                 assert isinstance(typed_sub.description, str)
                 assert len(typed_sub.description) > 0
 
-    def test_sub_blog_agents_have_valid_tools(self) -> None:
-        """Verify sub-blog_agents have properly configured tools."""
-        blog_agent = app.root_blog_agent
+    def test_sub_agents_have_valid_tools(self) -> None:
+        """Verify sub-agents have properly configured tools."""
+        blog_agent = app.root_agent
         assert blog_agent is not None
         sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
-        for sub_blog_agent in sequential_blog_agent.sub_blog_agents:
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
             typed_sub = as_blog_agent_config(sub_blog_agent)
 
             # Tools should be a list if configured
@@ -146,13 +146,13 @@ class TestAgentIntegration:
 
     def test_writer_blog_agent_has_save_tool(self) -> None:
         """Verify writer blog_agent has the save_blog_content tool."""
-        blog_agent = app.root_blog_agent
+        blog_agent = app.root_agent
         assert blog_agent is not None
         sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
         # Find the writer blog_agent
         writer_blog_agent = None
-        for sub_blog_agent in sequential_blog_agent.sub_blog_agents:
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
             if sub_blog_agent.name == "blog_writer":
                 writer_blog_agent = sub_blog_agent
                 break
@@ -166,13 +166,13 @@ class TestAgentIntegration:
 
     def test_publisher_blog_agent_has_publish_tool(self) -> None:
         """Verify publisher blog_agent has the publish_blog_to_github tool."""
-        blog_agent = app.root_blog_agent
+        blog_agent = app.root_agent
         assert blog_agent is not None
         sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
         # Find the publisher blog_agent
         publisher_blog_agent = None
-        for sub_blog_agent in sequential_blog_agent.sub_blog_agents:
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
             if sub_blog_agent.name == "blog_publisher":
                 publisher_blog_agent = sub_blog_agent
                 break
