@@ -1,13 +1,12 @@
 """Unit tests for custom tools."""
 
 import logging
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from google.genai import types
 
 # Import mock classes from conftest
-from conftest import MockState, MockToolContext
+from conftest import MockState
+from google.genai import types
 
 from agent.tools import save_blog_content
 

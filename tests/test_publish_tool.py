@@ -1,26 +1,26 @@
 """Unit tests for publish_blog_to_github tool."""
 
 import base64
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
-import requests
 from google.genai import types
 
 from agent.tools import publish_blog_to_github
 
 
 class MockState:
-    def __init__(self, data=None):
+    def __init__(self, data: dict[str, str] | None = None) -> None:
         self.data = data or {}
 
-    def get(self, key, default=None):
+    def get(self, key: str, default: str | None = None) -> str | None:
         return self.data.get(key, default)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: str) -> None:
         self.data[key] = value
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> str:
         return self.data[key]
 
 
@@ -41,7 +41,7 @@ class MockArtifactToolContext:
         self,
         filename: str,
         artifact: types.Part,
-        custom_metadata: dict | None = None,
+        custom_metadata: dict[str, Any] | None = None,
     ) -> int:
         """Mock save_artifact that stores artifact."""
         self._saved_artifacts[filename] = artifact
@@ -59,7 +59,7 @@ class MockArtifactToolContext:
 
 
 @pytest.fixture
-def tool_context_with_artifact():
+def tool_context_with_artifact() -> MockArtifactToolContext:
     """Create a tool context with a blog content artifact already saved."""
     return MockArtifactToolContext(
         state=MockState({"title": "Test Blog", "slug": "test-blog"}),
@@ -68,24 +68,28 @@ def tool_context_with_artifact():
 
 
 @pytest.fixture
-def tool_context_no_artifact():
+def tool_context_no_artifact() -> MockArtifactToolContext:
     """Create a tool context without any saved artifact."""
     return MockArtifactToolContext(state=MockState())
 
 
 @pytest.fixture
-def github_env(monkeypatch):
+def github_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BLOG_GITHUB_TOKEN", "fake-token")
     monkeypatch.setenv("BLOG_REPO_OWNER", "test-owner")
     monkeypatch.setenv("BLOG_REPO_NAME", "test-repo")
 
 
 @pytest.mark.asyncio
-async def test_publish_blog_success(tool_context_with_artifact, github_env):
+async def test_publish_blog_success(
+    tool_context_with_artifact: MockArtifactToolContext, github_env: None
+) -> None:
     """Test successful blog publication."""
-    with patch("requests.get") as mock_get, patch("requests.post") as mock_post, patch(
-        "requests.put"
-    ) as mock_put:
+    with (
+        patch("requests.get") as mock_get,
+        patch("requests.post") as mock_post,
+        patch("requests.put") as mock_put,
+    ):
         # Mock Step 1: Get repo info
         mock_get.side_effect = [
             MagicMock(status_code=200, json=lambda: {"default_branch": "main"}),
@@ -110,7 +114,7 @@ async def test_publish_blog_success(tool_context_with_artifact, github_env):
         mock_put.return_value = MagicMock(status_code=201)
 
         result = await publish_blog_to_github(
-            tool_context=tool_context_with_artifact,  # type: ignore
+            tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
             branch_name="blog/test",
             file_name="test.md",
             commit_message="feat: add test post",
@@ -125,11 +129,15 @@ async def test_publish_blog_success(tool_context_with_artifact, github_env):
 
 
 @pytest.mark.asyncio
-async def test_publish_blog_with_custom_repo(tool_context_with_artifact, github_env):
+async def test_publish_blog_with_custom_repo(
+    tool_context_with_artifact: MockArtifactToolContext, github_env: None
+) -> None:
     """Test blog publication with custom repo owner and name."""
-    with patch("requests.get") as mock_get, patch("requests.post") as mock_post, patch(
-        "requests.put"
-    ) as mock_put:
+    with (
+        patch("requests.get") as mock_get,
+        patch("requests.post") as mock_post,
+        patch("requests.put") as mock_put,
+    ):
         mock_get.side_effect = [
             MagicMock(status_code=200, json=lambda: {"default_branch": "main"}),
             MagicMock(
@@ -148,7 +156,7 @@ async def test_publish_blog_with_custom_repo(tool_context_with_artifact, github_
         mock_put.return_value = MagicMock(status_code=201)
 
         result = await publish_blog_to_github(
-            tool_context=tool_context_with_artifact,  # type: ignore
+            tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
             branch_name="blog/test",
             file_name="test.md",
             commit_message="feat: add test post",
@@ -165,11 +173,15 @@ async def test_publish_blog_with_custom_repo(tool_context_with_artifact, github_
 
 
 @pytest.mark.asyncio
-async def test_publish_blog_branch_exists_success(tool_context_with_artifact, github_env):
+async def test_publish_blog_branch_exists_success(
+    tool_context_with_artifact: MockArtifactToolContext, github_env: None
+) -> None:
     """Test that it succeeds if the branch already exists."""
-    with patch("requests.get") as mock_get, patch("requests.post") as mock_post, patch(
-        "requests.put"
-    ) as mock_put:
+    with (
+        patch("requests.get") as mock_get,
+        patch("requests.post") as mock_post,
+        patch("requests.put") as mock_put,
+    ):
         # Mock Step 1 & 2
         mock_get.side_effect = [
             MagicMock(status_code=200, json=lambda: {"default_branch": "main"}),
@@ -193,7 +205,7 @@ async def test_publish_blog_branch_exists_success(tool_context_with_artifact, gi
         mock_put.return_value = MagicMock(status_code=201)
 
         result = await publish_blog_to_github(
-            tool_context=tool_context_with_artifact,  # type: ignore
+            tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
             branch_name="blog/test",
             file_name="test.md",
             commit_message="feat: add test post",
@@ -206,11 +218,15 @@ async def test_publish_blog_branch_exists_success(tool_context_with_artifact, gi
 
 
 @pytest.mark.asyncio
-async def test_publish_blog_pr_exists_success(tool_context_with_artifact, github_env):
+async def test_publish_blog_pr_exists_success(
+    tool_context_with_artifact: MockArtifactToolContext, github_env: None
+) -> None:
     """Test that it succeeds if the PR already exists."""
-    with patch("requests.get") as mock_get, patch("requests.post") as mock_post, patch(
-        "requests.put"
-    ) as mock_put:
+    with (
+        patch("requests.get") as mock_get,
+        patch("requests.post") as mock_post,
+        patch("requests.put") as mock_put,
+    ):
         # Mock Step 1 & 2
         mock_get.side_effect = [
             MagicMock(status_code=200, json=lambda: {"default_branch": "main"}),
@@ -240,7 +256,7 @@ async def test_publish_blog_pr_exists_success(tool_context_with_artifact, github
         mock_put.return_value = MagicMock(status_code=201)
 
         result = await publish_blog_to_github(
-            tool_context=tool_context_with_artifact,  # type: ignore
+            tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
             branch_name="blog/test",
             file_name="test.md",
             commit_message="feat: add test post",
@@ -253,12 +269,14 @@ async def test_publish_blog_pr_exists_success(tool_context_with_artifact, github
 
 
 @pytest.mark.asyncio
-async def test_publish_blog_no_token_error(tool_context_with_artifact, monkeypatch):
+async def test_publish_blog_no_token_error(
+    tool_context_with_artifact: MockArtifactToolContext, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """Test that it returns error if BLOG_GITHUB_TOKEN is missing."""
     monkeypatch.delenv("BLOG_GITHUB_TOKEN", raising=False)
 
     result = await publish_blog_to_github(
-        tool_context=tool_context_with_artifact,  # type: ignore
+        tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
         branch_name="blog/test",
         file_name="test.md",
         commit_message="feat: add test post",
@@ -271,10 +289,12 @@ async def test_publish_blog_no_token_error(tool_context_with_artifact, monkeypat
 
 
 @pytest.mark.asyncio
-async def test_publish_blog_no_artifact_error(tool_context_no_artifact, github_env):
+async def test_publish_blog_no_artifact_error(
+    tool_context_no_artifact: MockArtifactToolContext, github_env: None
+) -> None:
     """Test that it returns error if no blog content artifact exists."""
     result = await publish_blog_to_github(
-        tool_context=tool_context_no_artifact,  # type: ignore
+        tool_context=tool_context_no_artifact,  # type: ignore[arg-type]
         branch_name="blog/test",
         file_name="test.md",
         commit_message="feat: add test post",
@@ -287,11 +307,15 @@ async def test_publish_blog_no_artifact_error(tool_context_no_artifact, github_e
 
 
 @pytest.mark.asyncio
-async def test_publish_blog_uses_artifact_content(tool_context_with_artifact, github_env):
+async def test_publish_blog_uses_artifact_content(
+    tool_context_with_artifact: MockArtifactToolContext, github_env: None
+) -> None:
     """Test that the tool uses the exact content from the artifact."""
-    with patch("requests.get") as mock_get, patch("requests.post") as mock_post, patch(
-        "requests.put"
-    ) as mock_put:
+    with (
+        patch("requests.get") as mock_get,
+        patch("requests.post") as mock_post,
+        patch("requests.put") as mock_put,
+    ):
         # Setup mocks
         mock_get.side_effect = [
             MagicMock(status_code=200, json=lambda: {"default_branch": "main"}),
@@ -311,7 +335,7 @@ async def test_publish_blog_uses_artifact_content(tool_context_with_artifact, gi
         mock_put.return_value = MagicMock(status_code=201)
 
         await publish_blog_to_github(
-            tool_context=tool_context_with_artifact,  # type: ignore
+            tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
             branch_name="blog/test",
             file_name="test.md",
             commit_message="feat: add test post",
