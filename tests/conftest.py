@@ -104,12 +104,12 @@ class MockMemoryCallbackContext:
 class MockLoggingCallbackContext:
     """Mock CallbackContext for LoggingCallbacks testing.
 
-    Used for agent and model callbacks testing.
+    Used for blog_agent and model callbacks testing.
     """
 
     def __init__(
         self,
-        agent_name: str = "test_agent",
+        agent_name: str = "test_blog_agent",
         invocation_id: str = "test-invocation-123",
         state: MockState | None = None,
         user_content: MockContent | None = None,
@@ -159,7 +159,7 @@ class MockToolContext:
 
     def __init__(
         self,
-        agent_name: str = "test_agent",
+        agent_name: str = "test_blog_agent",
         invocation_id: str = "test-invocation-456",
         state: MockState | None = None,
         user_content: MockContent | None = None,
@@ -190,7 +190,7 @@ class MockReadonlyContext:
 
     def __init__(
         self,
-        agent_name: str = "test_agent",
+        agent_name: str = "test_blog_agent",
         invocation_id: str = "test-inv-readonly",
         state: dict[str, Any] | None = None,
         user_content: MockContent | None = None,
@@ -199,7 +199,7 @@ class MockReadonlyContext:
         """Initialize mock readonly context.
 
         Args:
-            agent_name: Name of the agent.
+            agent_name: Name of the blog_agent.
             invocation_id: ID of the current invocation.
             state: Session state dictionary (read-only).
             user_content: Optional user content that started the invocation.
@@ -213,7 +213,7 @@ class MockReadonlyContext:
 
     @property
     def agent_name(self) -> str:
-        """The name of the agent that is currently running."""
+        """The name of the blog_agent that is currently running."""
         return self._agent_name
 
     @property
@@ -247,7 +247,7 @@ def mock_state() -> MockState:
 @pytest.fixture
 def mock_content() -> MockContent:
     """Create a mock content with test data."""
-    return MockContent({"text": "Hello, agent!"})
+    return MockContent({"text": "Hello, blog_agent!"})
 
 
 @pytest.fixture
@@ -256,7 +256,7 @@ def mock_logging_callback_context(
 ) -> MockLoggingCallbackContext:
     """Create a mock logging callback context with full data."""
     return MockLoggingCallbackContext(
-        agent_name="my_agent",
+        agent_name="my_blog_agent",
         invocation_id="inv-789",
         state=mock_state,
         user_content=mock_content,
@@ -294,7 +294,7 @@ def mock_tool_context(
 ) -> MockToolContext:
     """Create a mock tool context with full data."""
     return MockToolContext(
-        agent_name="tool_agent",
+        agent_name="tool_blog_agent",
         invocation_id="tool-inv-123",
         state=MockState({"tool_state": "active"}),
         user_content=MockContent({"text": "Execute tool"}),
@@ -345,7 +345,7 @@ def mock_memory_callback_context_with_attribute_error() -> MockMemoryCallbackCon
 def mock_readonly_context() -> MockReadonlyContext:
     """Create a mock readonly context for InstructionProvider testing."""
     return MockReadonlyContext(
-        agent_name="instruction_test_agent",
+        agent_name="instruction_test_blog_agent",
         invocation_id="readonly-inv-123",
         state={"user_tier": "premium", "language": "en"},
     )
@@ -361,7 +361,7 @@ def valid_server_env() -> dict[str, str]:
     """
     return {
         "GOOGLE_CLOUD_PROJECT": "test-project",
-        "AGENT_NAME": "test-agent",
+        "AGENT_NAME": "test-blog_agent",
         "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": "true",
     }
 
@@ -423,7 +423,7 @@ def mock_load_dotenv() -> Generator[MagicMock]:
     Yields:
         Mock object for load_dotenv function.
     """
-    with patch("agent.utils.config.load_dotenv") as mock:
+    with patch("blog_agent.utils.config.load_dotenv") as mock:
         yield mock
 
 

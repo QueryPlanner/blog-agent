@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 from pydantic import ValidationError
 
-from agent.utils.config import (
+from blog_agent.utils.config import (
     ServerEnv,
     initialize_environment,
 )
@@ -19,7 +19,7 @@ class TestServerEnv:
         """Test creating ServerEnv with valid required fields."""
         env = ServerEnv.model_validate(valid_server_env)
 
-        assert env.agent_name == "test-agent"
+        assert env.agent_name == "test-blog_agent"
 
     def test_server_env_missing_required_field_raises_validation_error(self) -> None:
         """Test that missing required fields raise ValidationError."""
@@ -56,7 +56,7 @@ class TestServerEnv:
         """Test setting optional fields with actual values."""
         data = {
             **valid_server_env,
-            "AGENT_NAME": "custom-agent",
+            "AGENT_NAME": "custom-blog_agent",
             "LOG_LEVEL": "DEBUG",
             "SERVE_WEB_INTERFACE": "true",
             "RELOAD_AGENTS": "true",
@@ -70,7 +70,7 @@ class TestServerEnv:
 
         env = ServerEnv.model_validate(data)
 
-        assert env.agent_name == "custom-agent"
+        assert env.agent_name == "custom-blog_agent"
         assert env.log_level == "DEBUG"
         assert env.serve_web_interface is True
         assert env.reload_agents is True
@@ -113,7 +113,8 @@ class TestServerEnv:
         expected = "postgresql://user:pass@localhost/db?ssl=require"
         assert env.session_uri == expected
 
-        # Case 4: Both database_url and agent_engine (database_url takes precedence)
+        # Case 4: Both database_url and agent_engine
+        # (database_url takes precedence)
         data = {
             **valid_server_env,
             "DATABASE_URL": "postgresql://user:pass@localhost/db",
@@ -176,7 +177,7 @@ class TestServerEnv:
         output = captured.out
 
         # Check key information is printed
-        assert "test-agent" in output
+        assert "test-blog_agent" in output
         assert "AGENT_NAME" in output
         assert "LOG_LEVEL" in output
 
@@ -207,7 +208,7 @@ class TestServerEnv:
         data = {**valid_server_env, "EXTRA_VAR": "extra-value", "PATH": "/usr/bin"}
 
         env = ServerEnv.model_validate(data)
-        assert env.agent_name == "test-agent"
+        assert env.agent_name == "test-blog_agent"
         # Extra fields should not be included
         assert not hasattr(env, "EXTRA_VAR")
         assert not hasattr(env, "PATH")
@@ -229,7 +230,7 @@ class TestInitializeEnvironment:
         env = initialize_environment(ServerEnv, print_config=False)
 
         mock_load_dotenv.assert_called_once_with(override=True)
-        assert env.agent_name == "test-agent"
+        assert env.agent_name == "test-blog_agent"
 
     def test_initialize_environment_validation_failure(
         self,

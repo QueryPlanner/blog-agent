@@ -1,4 +1,4 @@
-"""Integration tests for agent configuration and component wiring.
+"""Integration tests for blog_agent configuration and component wiring.
 
 This module validates the basic structure and wiring of ADK app components.
 Tests are pattern-based and validate integration points regardless of specific
@@ -10,11 +10,11 @@ Future: Container-based smoke tests for CI/CD will be added here.
 from collections.abc import Sequence
 from typing import Any, Protocol, cast
 
-from agent import app
+from blog_agent import app
 
 
 class AgentConfigLike(Protocol):
-    """Minimal agent surface needed for integration assertions."""
+    """Minimal blog_agent surface needed for integration assertions."""
 
     name: str
     model: Any
@@ -24,21 +24,21 @@ class AgentConfigLike(Protocol):
 
 
 class SequentialAgentLike(Protocol):
-    """Minimal sequential agent surface for integration assertions."""
+    """Minimal sequential blog_agent surface for integration assertions."""
 
     name: str
     description: str | None
     sub_agents: Sequence[Any]
 
 
-def as_agent_config(agent: object) -> AgentConfigLike:
-    """Treat runtime agent instances as a typed config surface."""
-    return cast(AgentConfigLike, agent)
+def as_blog_agent_config(blog_agent: object) -> AgentConfigLike:
+    """Treat runtime blog_agent instances as a typed config surface."""
+    return cast(AgentConfigLike, blog_agent)
 
 
-def as_sequential_agent(agent: object) -> SequentialAgentLike:
-    """Treat sequential agent instances as a typed surface."""
-    return cast(SequentialAgentLike, agent)
+def as_sequential_blog_agent(blog_agent: object) -> SequentialAgentLike:
+    """Treat sequential blog_agent instances as a typed surface."""
+    return cast(SequentialAgentLike, blog_agent)
 
 
 class TestAppIntegration:
@@ -52,7 +52,7 @@ class TestAppIntegration:
         assert len(app.name) > 0
 
     def test_app_has_root_agent(self) -> None:
-        """Verify app is wired to root agent."""
+        """Verify app is wired to root blog_agent."""
         assert app.root_agent is not None
 
     def test_app_plugins_are_valid_if_configured(self) -> None:
@@ -69,37 +69,37 @@ class TestAppIntegration:
 class TestAgentIntegration:
     """Pattern-based integration tests for Agent configuration."""
 
-    def test_agent_has_required_configuration(self) -> None:
-        """Verify root agent (SequentialAgent) has required configuration."""
-        agent = app.root_agent
-        assert agent is not None
+    def test_blog_agent_has_required_configuration(self) -> None:
+        """Verify root blog_agent (SequentialAgent) has required configuration."""
+        blog_agent = app.root_agent
+        assert blog_agent is not None
 
         # SequentialAgent has name and description
-        assert agent.name is not None
-        assert isinstance(agent.name, str)
-        assert len(agent.name) > 0
+        assert blog_agent.name is not None
+        assert isinstance(blog_agent.name, str)
+        assert len(blog_agent.name) > 0
 
         # SequentialAgent has sub_agents
-        sequential_agent = as_sequential_agent(agent)
-        assert sequential_agent.sub_agents is not None
-        assert len(sequential_agent.sub_agents) >= 1
+        sequential_blog_agent = as_sequential_blog_agent(blog_agent)
+        assert sequential_blog_agent.sub_agents is not None
+        assert len(sequential_blog_agent.sub_agents) >= 1
 
     def test_sub_agents_have_valid_configuration(self) -> None:
         """Verify sub-agents have valid model and instruction configuration."""
-        agent = app.root_agent
-        assert agent is not None
-        sequential_agent = as_sequential_agent(agent)
+        blog_agent = app.root_agent
+        assert blog_agent is not None
+        sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
-        # Check each sub-agent (writer and publisher)
-        for sub_agent in sequential_agent.sub_agents:
-            typed_sub = as_agent_config(sub_agent)
+        # Check each sub-blog_agent (writer and publisher)
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
+            typed_sub = as_blog_agent_config(sub_blog_agent)
 
-            # Each sub-agent should have a name
+            # Each sub-blog_agent should have a name
             assert typed_sub.name is not None
             assert isinstance(typed_sub.name, str)
             assert len(typed_sub.name) > 0
 
-            # Each sub-agent should have a model
+            # Each sub-blog_agent should have a model
             assert typed_sub.model is not None
             if isinstance(typed_sub.model, str):
                 assert len(typed_sub.model) > 0
@@ -111,31 +111,31 @@ class TestAgentIntegration:
 
     def test_sub_agents_have_valid_instructions(self) -> None:
         """Verify sub-agents have valid instructions and descriptions."""
-        agent = app.root_agent
-        assert agent is not None
-        sequential_agent = as_sequential_agent(agent)
+        blog_agent = app.root_agent
+        assert blog_agent is not None
+        sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
-        for sub_agent in sequential_agent.sub_agents:
-            typed_sub = as_agent_config(sub_agent)
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
+            typed_sub = as_blog_agent_config(sub_blog_agent)
 
-            # Each sub-agent should have instructions
+            # Each sub-blog_agent should have instructions
             if typed_sub.instruction is not None:
                 assert isinstance(typed_sub.instruction, str)
                 assert len(typed_sub.instruction) > 0
 
-            # Each sub-agent should have a description
+            # Each sub-blog_agent should have a description
             if typed_sub.description is not None:
                 assert isinstance(typed_sub.description, str)
                 assert len(typed_sub.description) > 0
 
     def test_sub_agents_have_valid_tools(self) -> None:
         """Verify sub-agents have properly configured tools."""
-        agent = app.root_agent
-        assert agent is not None
-        sequential_agent = as_sequential_agent(agent)
+        blog_agent = app.root_agent
+        assert blog_agent is not None
+        sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
-        for sub_agent in sequential_agent.sub_agents:
-            typed_sub = as_agent_config(sub_agent)
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
+            typed_sub = as_blog_agent_config(sub_blog_agent)
 
             # Tools should be a list if configured
             if typed_sub.tools is not None:
@@ -144,41 +144,41 @@ class TestAgentIntegration:
                     assert tool is not None
                     assert hasattr(tool, "__class__")
 
-    def test_writer_agent_has_save_tool(self) -> None:
-        """Verify writer agent has the save_blog_content tool."""
-        agent = app.root_agent
-        assert agent is not None
-        sequential_agent = as_sequential_agent(agent)
+    def test_writer_blog_agent_has_save_tool(self) -> None:
+        """Verify writer blog_agent has the save_blog_content tool."""
+        blog_agent = app.root_agent
+        assert blog_agent is not None
+        sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
-        # Find the writer agent
-        writer_agent = None
-        for sub_agent in sequential_agent.sub_agents:
-            if sub_agent.name == "blog_writer":
-                writer_agent = sub_agent
+        # Find the writer blog_agent
+        writer_blog_agent = None
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
+            if sub_blog_agent.name == "blog_writer":
+                writer_blog_agent = sub_blog_agent
                 break
 
-        assert writer_agent is not None, "blog_writer agent not found"
-        typed_writer = as_agent_config(writer_agent)
+        assert writer_blog_agent is not None, "blog_writer blog_agent not found"
+        typed_writer = as_blog_agent_config(writer_blog_agent)
 
         # Writer should have tools
         assert typed_writer.tools is not None
         assert len(typed_writer.tools) >= 1
 
-    def test_publisher_agent_has_publish_tool(self) -> None:
-        """Verify publisher agent has the publish_blog_to_github tool."""
-        agent = app.root_agent
-        assert agent is not None
-        sequential_agent = as_sequential_agent(agent)
+    def test_publisher_blog_agent_has_publish_tool(self) -> None:
+        """Verify publisher blog_agent has the publish_blog_to_github tool."""
+        blog_agent = app.root_agent
+        assert blog_agent is not None
+        sequential_blog_agent = as_sequential_blog_agent(blog_agent)
 
-        # Find the publisher agent
-        publisher_agent = None
-        for sub_agent in sequential_agent.sub_agents:
-            if sub_agent.name == "blog_publisher":
-                publisher_agent = sub_agent
+        # Find the publisher blog_agent
+        publisher_blog_agent = None
+        for sub_blog_agent in sequential_blog_agent.sub_agents:
+            if sub_blog_agent.name == "blog_publisher":
+                publisher_blog_agent = sub_blog_agent
                 break
 
-        assert publisher_agent is not None, "blog_publisher agent not found"
-        typed_publisher = as_agent_config(publisher_agent)
+        assert publisher_blog_agent is not None, "blog_publisher blog_agent not found"
+        typed_publisher = as_blog_agent_config(publisher_blog_agent)
 
         # Publisher should have tools
         assert typed_publisher.tools is not None

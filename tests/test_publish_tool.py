@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from google.genai import types
 
-from agent.tools import publish_blog_to_github
+from blog_agent.tools import publish_blog_to_github
 
 
 class MockState:

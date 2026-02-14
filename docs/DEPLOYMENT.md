@@ -21,10 +21,10 @@ We provide an automated script to provision your server with Docker, Firewall (U
 > Review the script before executing.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/queryplanner/blog-agent/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/queryplanner/blog-blog_agent/main/setup.sh | bash
 ```
 
-This creates a user named `agent-runner` (or similar) and installs Docker.
+This creates a user named `blog_agent-runner` (or similar) and installs Docker.
 
 ---
 
@@ -36,19 +36,19 @@ To allow GitHub Actions to deploy to your server, you need a dedicated SSH key.
 Run this on your local machine (not the server) to create a key without a passphrase:
 
 ```bash
-ssh-keygen -t ed25519 -C "blog-agent-deploy" -f ~/.ssh/blog_agent_deploy -N ""
+ssh-keygen -t ed25519 -C "blog-blog_agent-deploy" -f ~/.ssh/blog_blog_agent_deploy -N ""
 ```
 
 ### 2. Install Public Key on Server
 Copy the public key to your server's authorized keys for the user created in Step 1.
 
 ```bash
-# Replace <user> with the user from setup.sh (default: agent-runner)
+# Replace <user> with the user from setup.sh (default: blog_agent-runner)
 # Replace <host> with your server IP
-ssh-copy-id -i ~/.ssh/blog_agent_deploy.pub <user>@<host>
+ssh-copy-id -i ~/.ssh/blog_blog_agent_deploy.pub <user>@<host>
 ```
 
-*Verification:* Try logging in: `ssh -i ~/.ssh/blog_agent_deploy <user>@<host>`
+*Verification:* Try logging in: `ssh -i ~/.ssh/blog_blog_agent_deploy <user>@<host>`
 
 ---
 
@@ -70,8 +70,8 @@ Run the following commands to upload your configuration.
 **Server Access Secrets:**
 ```bash
 gh secret set SERVER_HOST --body "your.server.ip.address"
-gh secret set SERVER_USER --body "agent-runner"
-gh secret set SSH_PRIVATE_KEY < ~/.ssh/blog_agent_deploy
+gh secret set SERVER_USER --body "blog_agent-runner"
+gh secret set SSH_PRIVATE_KEY < ~/.ssh/blog_blog_agent_deploy
 ```
 
 **Application Configuration (Secrets):**
@@ -117,7 +117,7 @@ gh variable set BLOG_REPO_NAME --body "blogs"
 
 ### Permission Errors
 If you see `PermissionError: [Errno 13] Permission denied: '/app/src/.adk'` in the logs:
-1.  This typically happens if the named volume `agent_artifacts` was created by `root` in a previous run.
+1.  This typically happens if the named volume `blog_agent_artifacts` was created by `root` in a previous run.
 2.  **Fix**: SSH into the server and remove the volume to let Docker recreate it with correct permissions.
     ```bash
     docker compose down -v

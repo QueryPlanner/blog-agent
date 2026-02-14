@@ -1,6 +1,6 @@
 services:
-  agent:
-    image: ghcr.io/queryplanner/google-adk-on-bare-metal:main
+  blog_agent:
+    image: ghcr.io/queryplanner/blog-agent:main
     build: .
     ports:
       - "8080:8080"
@@ -16,9 +16,9 @@ services:
       - .env
     # Volumes are for hot-reloading and persisting artifacts.
     volumes:
-      - agent_artifacts:/app/src/.adk
+      - blog_agent_artifacts:/app/src/.adk
     restart: always
-    command: python -m agent.server
+    command: python -m blog_agent.server
 
 volumes:
-  agent_artifacts:
+  blog_agent_artifacts:

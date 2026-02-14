@@ -1,4 +1,4 @@
-"""Unit tests for the LoggingCallbacks class in the agent.logging_callbacks module."""
+"""Unit tests for the LoggingCallbacks class."""
 
 import logging
 from typing import Any
@@ -17,7 +17,7 @@ from conftest import (
     MockToolContext,
 )
 
-from agent.callbacks import LoggingCallbacks
+from blog_agent.callbacks import LoggingCallbacks
 
 # Note: Custom mock classes (conftest.py) use duck typing to match ADK interfaces.
 
@@ -39,7 +39,7 @@ class TestLoggerInjection:
         callbacks = LoggingCallbacks()
 
         assert callbacks.logger is not None
-        assert callbacks.logger.name == "agent.callbacks"
+        assert callbacks.logger.name == "blog_agent.callbacks"
 
     def test_logging_callbacks_custom_logger(
         self, custom_logger: logging.Logger
@@ -77,14 +77,14 @@ class TestLoggerInjection:
 
 
 class TestAgentCallbacks:
-    """Tests for agent lifecycle callbacks (before_agent and after_agent)."""
+    """Tests for blog_agent lifecycle callbacks."""
 
     def test_before_agent_with_full_context(
         self,
         mock_logging_callback_context: MockLoggingCallbackContext,
         caplog: pytest.LogCaptureFixture,
     ) -> None:
-        """Verify before_agent logs agent name, ID, state, and user content properly."""
+        """Verify before_agent logs name, ID, state, and user content."""
         caplog.set_level(logging.DEBUG)
         callbacks = LoggingCallbacks()
 
@@ -95,13 +95,13 @@ class TestAgentCallbacks:
 
         # Verify INFO level logging
         assert (
-            "*** Starting agent 'my_agent' with invocation_id 'inv-789' ***"
+            "*** Starting agent 'my_blog_agent' with invocation_id 'inv-789' ***"
             in caplog.text
         )
 
         # Verify DEBUG level logging
         assert "State keys:" in caplog.text
-        assert "User Content: {'text': 'Hello, agent!'}" in caplog.text
+        assert "User Content: {'text': 'Hello, blog_agent!'}" in caplog.text
 
     def test_before_agent_without_user_content(
         self, caplog: pytest.LogCaptureFixture
@@ -114,7 +114,7 @@ class TestAgentCallbacks:
         result = callbacks.before_agent(context)  # type: ignore
 
         assert result is None
-        assert "*** Starting agent 'test_agent'" in caplog.text
+        assert "*** Starting agent 'test_blog_agent'" in caplog.text
         assert "User Content:" not in caplog.text
 
     def test_after_agent_with_full_context(
@@ -122,7 +122,7 @@ class TestAgentCallbacks:
         mock_logging_callback_context: MockLoggingCallbackContext,
         caplog: pytest.LogCaptureFixture,
     ) -> None:
-        """Verify after_agent logs agent exit with ID, state, and user content."""
+        """Verify after_agent logs exit with ID, state, and user content."""
         caplog.set_level(logging.DEBUG)
         callbacks = LoggingCallbacks()
 
@@ -133,13 +133,13 @@ class TestAgentCallbacks:
 
         # Verify INFO level logging
         assert (
-            "*** Leaving agent 'my_agent' with invocation_id 'inv-789' ***"
+            "*** Leaving agent 'my_blog_agent' with invocation_id 'inv-789' ***"
             in caplog.text
         )
 
         # Verify DEBUG level logging
         assert "State keys:" in caplog.text
-        assert "User Content: {'text': 'Hello, agent!'}" in caplog.text
+        assert "User Content: {'text': 'Hello, blog_agent!'}" in caplog.text
 
     def test_after_agent_without_user_content(
         self, caplog: pytest.LogCaptureFixture
@@ -152,7 +152,7 @@ class TestAgentCallbacks:
         result = callbacks.after_agent(context)  # type: ignore
 
         assert result is None
-        assert "*** Leaving agent 'test_agent'" in caplog.text
+        assert "*** Leaving agent 'test_blog_agent'" in caplog.text
         assert "User Content:" not in caplog.text
 
 
@@ -179,7 +179,7 @@ class TestModelCallbacks:
         result = callbacks.before_model(mock_logging_callback_context, llm_request)  # type: ignore
 
         assert result is None
-        assert "*** Before LLM call for agent 'my_agent'" in caplog.text
+        assert "*** Before LLM call for agent 'my_blog_agent'" in caplog.text
         assert "LLM request contains 3 messages:" in caplog.text
         assert "Content 1: {'role': 'system'" in caplog.text
         assert "Content 2: {'role': 'user'" in caplog.text
@@ -214,7 +214,7 @@ class TestModelCallbacks:
         result = callbacks.after_model(mock_logging_callback_context, mock_llm_response)  # type: ignore
 
         assert result is None
-        assert "*** After LLM call for agent 'my_agent'" in caplog.text
+        assert "*** After LLM call for agent 'my_blog_agent'" in caplog.text
         assert (
             "LLM response: {'text': 'The answer is 42', 'confidence': 0.95}"
             in caplog.text
@@ -257,7 +257,8 @@ class TestToolCallbacks:
 
         assert result is None
         assert (
-            "*** Before invoking tool 'calculator' in agent 'tool_agent'" in caplog.text
+            "*** Before invoking tool 'calculator' in agent 'tool_blog_agent'"
+            in caplog.text
         )
         assert "args: {'operation': 'add', 'x': 5, 'y': 3}" in caplog.text
         assert (
@@ -424,7 +425,7 @@ class TestEdgeCases:
         mock_llm_response: MockLlmResponse,
         mock_base_tool: MockBaseTool,
     ) -> None:
-        """Verify all callback methods return None to allow normal agent flow."""
+        """Verify all callback methods return None to allow normal blog_agent flow."""
         callbacks = LoggingCallbacks()
 
         # Create test objects
@@ -476,7 +477,8 @@ class TestWalrusOperators:
             }
         )
         context_before_agent = MockLoggingCallbackContext(
-            agent_name="walrus_test_agent", user_content=unique_content_before_agent
+            agent_name="walrus_test_blog_agent",
+            user_content=unique_content_before_agent,
         )
 
         caplog.clear()
@@ -496,7 +498,8 @@ class TestWalrusOperators:
             }
         )
         context_after_agent = MockLoggingCallbackContext(
-            agent_name="walrus_test_agent", user_content=unique_content_after_agent
+            agent_name="walrus_test_blog_agent",
+            user_content=unique_content_after_agent,
         )
 
         caplog.clear()
@@ -515,7 +518,8 @@ class TestWalrusOperators:
             }
         )
         context_before_model = MockLoggingCallbackContext(
-            agent_name="walrus_test_agent", user_content=unique_content_before_model
+            agent_name="walrus_test_blog_agent",
+            user_content=unique_content_before_model,
         )
         llm_request = MockLlmRequest()
 
@@ -535,7 +539,8 @@ class TestWalrusOperators:
             }
         )
         context_after_model = MockLoggingCallbackContext(
-            agent_name="walrus_test_agent", user_content=unique_content_after_model
+            agent_name="walrus_test_blog_agent",
+            user_content=unique_content_after_model,
         )
 
         # Test 5: after_model walrus operator with llm_content
@@ -569,7 +574,8 @@ class TestWalrusOperators:
             }
         )
         tool_context_before = MockToolContext(
-            agent_name="walrus_tool_agent", user_content=unique_content_before_tool
+            agent_name="walrus_tool_blog_agent",
+            user_content=unique_content_before_tool,
         )
         tool = MockBaseTool(name="walrus_test_tool")
         args = {"test": "walrus"}
@@ -590,7 +596,8 @@ class TestWalrusOperators:
             }
         )
         tool_context_after = MockToolContext(
-            agent_name="walrus_tool_agent", user_content=unique_content_after_tool
+            agent_name="walrus_tool_blog_agent",
+            user_content=unique_content_after_tool,
         )
         tool_response = {"result": "walrus_test_success"}
 
@@ -618,11 +625,11 @@ class TestWalrusOperators:
 
         # Create contexts with None values for user_content
         context_none = MockLoggingCallbackContext(
-            agent_name="none_test_agent",
+            agent_name="none_test_blog_agent",
             user_content=None,  # This should cause walrus operator to skip the block
         )
         tool_context_none = MockToolContext(
-            agent_name="none_tool_agent", user_content=None
+            agent_name="none_tool_blog_agent", user_content=None
         )
         llm_response_none = MockLlmResponse(content=None)  # None llm_content
 

@@ -1,11 +1,8 @@
 [project]
-name = "google-adk-on-bare-metal"
+name = "blog-agent"
 version = "0.1.0"
-description = "Production-ready template for building and deploying AI agents using Google ADK, LiteLLM, and Postgres on self-hosted infrastructure"
+description = "Production-ready template for building and deploying AI blog_agents using Google ADK, LiteLLM, and Postgres on self-hosted infrastructure"
 readme = "README.md"
-authors = [
-    { name = "queryplanner", email = "queryplanner@users.noreply.github.com" }
-]
 requires-python = ">=3.13,<3.14"
 dependencies = [
     # Pin ADK to test releases before locking upgrades
@@ -27,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "agent.server:main"
+server = "blog_agent.server:main"
 
 [dependency-groups]
 dev = [
@@ -46,7 +43,7 @@ requires = ["uv_build>=0.8.21,<0.9.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "agent"
+module-name = "blog_agent"
 
 [tool.ruff]
 src = ["src"]
@@ -82,7 +79,7 @@ select = [
 [tool.mypy]
 python_version = "3.13"
 mypy_path = "src"
-packages = ["agent"]
+packages = ["blog_agent"]
 exclude = ["init_template.py"]
 warn_return_any = true
 warn_unused_configs = true
@@ -102,10 +99,10 @@ show_error_codes = true
 source = ["src"]
 branch = true
 omit = [
-    "src/agent/**/__init__.py",
-    "src/agent/server.py",
-    "src/agent/**/agent.py",
-    "src/agent/utils/observability.py",
+    "src/blog_agent/**/__init__.py",
+    "src/blog_agent/server.py",
+    "src/blog_agent/**/agent.py",
+    "src/blog_agent/utils/observability.py",
 ]
 
 [tool.coverage.report]
