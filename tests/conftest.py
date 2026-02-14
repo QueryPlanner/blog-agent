@@ -104,18 +104,18 @@ class MockMemoryCallbackContext:
 class MockLoggingCallbackContext:
     """Mock CallbackContext for LoggingCallbacks testing.
 
-    Used for agent and model callbacks testing.
+    Used for blog_agent and model callbacks testing.
     """
 
     def __init__(
         self,
-        agent_name: str = "test_agent",
+        blog_agent_name: str = "test_blog_agent",
         invocation_id: str = "test-invocation-123",
         state: MockState | None = None,
         user_content: MockContent | None = None,
     ) -> None:
         """Initialize mock callback context for logging callbacks."""
-        self.agent_name = agent_name
+        self.blog_agent_name = blog_agent_name
         self.invocation_id = invocation_id
         self.state = state if state is not None else MockState()
         self.user_content = user_content
@@ -159,14 +159,14 @@ class MockToolContext:
 
     def __init__(
         self,
-        agent_name: str = "test_agent",
+        blog_agent_name: str = "test_blog_agent",
         invocation_id: str = "test-invocation-456",
         state: MockState | None = None,
         user_content: MockContent | None = None,
         actions: MockEventActions | None = None,
     ) -> None:
         """Initialize mock tool context."""
-        self.agent_name = agent_name
+        self.blog_agent_name = blog_agent_name
         self.invocation_id = invocation_id
         self.state = state if state is not None else MockState()
         self.user_content = user_content
@@ -185,12 +185,12 @@ class MockReadonlyContext:
     """Mock ReadonlyContext for testing InstructionProvider functions.
 
     Provides read-only access to invocation metadata and session state,
-    matching the interface of google.adk.agents.readonly_context.ReadonlyContext.
+    matching the interface of google.adk.blog_agents.readonly_context.ReadonlyContext.
     """
 
     def __init__(
         self,
-        agent_name: str = "test_agent",
+        blog_agent_name: str = "test_blog_agent",
         invocation_id: str = "test-inv-readonly",
         state: dict[str, Any] | None = None,
         user_content: MockContent | None = None,
@@ -199,22 +199,22 @@ class MockReadonlyContext:
         """Initialize mock readonly context.
 
         Args:
-            agent_name: Name of the agent.
+            blog_agent_name: Name of the blog_agent.
             invocation_id: ID of the current invocation.
             state: Session state dictionary (read-only).
             user_content: Optional user content that started the invocation.
             session: Optional session object.
         """
-        self._agent_name = agent_name
+        self._blog_agent_name = blog_agent_name
         self._invocation_id = invocation_id
         self._state = state if state is not None else {}
         self._user_content = user_content
         self._session = session if session is not None else MockSession()
 
     @property
-    def agent_name(self) -> str:
-        """The name of the agent that is currently running."""
-        return self._agent_name
+    def blog_agent_name(self) -> str:
+        """The name of the blog_agent that is currently running."""
+        return self._blog_agent_name
 
     @property
     def invocation_id(self) -> str:
@@ -247,7 +247,7 @@ def mock_state() -> MockState:
 @pytest.fixture
 def mock_content() -> MockContent:
     """Create a mock content with test data."""
-    return MockContent({"text": "Hello, agent!"})
+    return MockContent({"text": "Hello, blog_agent!"})
 
 
 @pytest.fixture
@@ -256,7 +256,7 @@ def mock_logging_callback_context(
 ) -> MockLoggingCallbackContext:
     """Create a mock logging callback context with full data."""
     return MockLoggingCallbackContext(
-        agent_name="my_agent",
+        blog_agent_name="my_blog_agent",
         invocation_id="inv-789",
         state=mock_state,
         user_content=mock_content,
@@ -294,7 +294,7 @@ def mock_tool_context(
 ) -> MockToolContext:
     """Create a mock tool context with full data."""
     return MockToolContext(
-        agent_name="tool_agent",
+        blog_agent_name="tool_blog_agent",
         invocation_id="tool-inv-123",
         state=MockState({"tool_state": "active"}),
         user_content=MockContent({"text": "Execute tool"}),
@@ -345,7 +345,7 @@ def mock_memory_callback_context_with_attribute_error() -> MockMemoryCallbackCon
 def mock_readonly_context() -> MockReadonlyContext:
     """Create a mock readonly context for InstructionProvider testing."""
     return MockReadonlyContext(
-        agent_name="instruction_test_agent",
+        blog_agent_name="instruction_test_blog_agent",
         invocation_id="readonly-inv-123",
         state={"user_tier": "premium", "language": "en"},
     )
@@ -361,7 +361,7 @@ def valid_server_env() -> dict[str, str]:
     """
     return {
         "GOOGLE_CLOUD_PROJECT": "test-project",
-        "AGENT_NAME": "test-agent",
+        "AGENT_NAME": "test-blog_agent",
         "OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT": "true",
     }
 
@@ -423,7 +423,7 @@ def mock_load_dotenv() -> Generator[MagicMock]:
     Yields:
         Mock object for load_dotenv function.
     """
-    with patch("agent.utils.config.load_dotenv") as mock:
+    with patch("blog_agent.utils.config.load_dotenv") as mock:
         yield mock
 
 

@@ -5,9 +5,9 @@ from typing import cast
 
 import pytest
 from conftest import MockMemoryCallbackContext
-from google.adk.agents.callback_context import CallbackContext
+from google.adk.blog_agents.callback_context import CallbackContext
 
-from agent.callbacks import add_session_to_memory
+from blog_agent.callbacks import add_session_to_memory
 
 
 def as_callback_context(context: MockMemoryCallbackContext) -> CallbackContext:

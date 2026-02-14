@@ -8,9 +8,9 @@
 
 ### Repo layout
 
-- `src/agent/server.py`: Main platform entrypoint (FastAPI + ADK + Postgres)
-- `src/agent/agent.py`: Agent definition (exports `root_agent`)
-- `src/agent/utils/`: Shared helper modules (config + observability)
+- `src/blog_agent/server.py`: Main platform entrypoint (FastAPI + ADK + Postgres)
+- `src/blog_agent/blog_agent.py`: Agent definition (exports `root_blog_agent`)
+- `src/blog_agent/utils/`: Shared helper modules (config + observability)
 - `tests/`: Unit and integration tests
 - `.env`: Configuration file (API keys, DB URL)
 
@@ -18,7 +18,7 @@
 
 Create `.env` in the project root:
 
-- `AGENT_NAME`: Unique identifier for the agent service (required)
+- `AGENT_NAME`: Unique identifier for the blog_agent service (required)
 - `GOOGLE_API_KEY`: Google AI Studio key (optional if using OpenRouter)
 - `OPENROUTER_API_KEY`: OpenRouter API key (required for non-Google models)
 - `DATABASE_URL`: Postgres URL for sessions (required for persistence)
@@ -45,7 +45,7 @@ uv sync
 
 **Local Python:**
 ```bash
-uv run python -m agent.server
+uv run python -m blog_agent.server
 ```
 
 **Docker Compose (Recommended for full stack):**

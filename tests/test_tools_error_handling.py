@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from google.genai import types
 
-from agent.tools import (
+from blog_agent.tools import (
     GitHubError,
     _get_github_headers,
     publish_blog_to_github,

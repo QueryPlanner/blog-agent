@@ -8,7 +8,7 @@ import pytest
 from conftest import MockState
 from google.genai import types
 
-from agent.tools import save_blog_content
+from blog_agent.tools import save_blog_content
 
 
 class MockArtifactToolContext:

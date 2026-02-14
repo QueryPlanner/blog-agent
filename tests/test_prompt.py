@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from conftest import MockReadonlyContext
 
-from agent.prompt import (
+from blog_agent.prompt import (
     return_description_publisher,
     return_description_root,
     return_description_writer,
@@ -29,7 +29,7 @@ class TestReturnDescriptionRoot:
         """Test that description is a non-empty string with meaningful content."""
         description = return_description_root()
 
-        # Description should be a non-empty string (flexible for any agent name)
+        # Description should be a non-empty string (flexible for any blog_agent name)
         assert isinstance(description, str)
         assert len(description) > 0
         # Should contain at least some alphabetic characters
@@ -160,7 +160,7 @@ class TestReturnGlobalInstruction:
     ) -> None:
         """Test that date updates when function is called on different days."""
         # Mock date.today() to return a specific date
-        with patch("agent.prompt.date") as mock_date:
+        with patch("blog_agent.prompt.date") as mock_date:
             mock_date.today.return_value = date(2025, 1, 15)
             instruction1 = return_global_instruction(mock_readonly_context)  # type: ignore
 
@@ -179,7 +179,7 @@ class TestReturnGlobalInstruction:
         """Test that function signature accepts ReadonlyContext as required by ADK."""
         # Create a context with state to ensure it's accessible if needed
         context = MockReadonlyContext(
-            agent_name="test_agent",
+            blog_agent_name="test_blog_agent",
             invocation_id="test-123",
             state={"user_id": "user_456", "preferences": {"theme": "dark"}},
         )
