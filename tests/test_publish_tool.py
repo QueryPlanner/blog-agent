@@ -75,7 +75,7 @@ def tool_context_no_artifact():
 
 @pytest.fixture
 def github_env(monkeypatch):
-    monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
+    monkeypatch.setenv("BLOG_GITHUB_TOKEN", "fake-token")
     monkeypatch.setenv("BLOG_REPO_OWNER", "test-owner")
     monkeypatch.setenv("BLOG_REPO_NAME", "test-repo")
 
@@ -254,8 +254,8 @@ async def test_publish_blog_pr_exists_success(tool_context_with_artifact, github
 
 @pytest.mark.asyncio
 async def test_publish_blog_no_token_error(tool_context_with_artifact, monkeypatch):
-    """Test that it returns error if GITHUB_TOKEN is missing."""
-    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    """Test that it returns error if BLOG_GITHUB_TOKEN is missing."""
+    monkeypatch.delenv("BLOG_GITHUB_TOKEN", raising=False)
 
     result = await publish_blog_to_github(
         tool_context=tool_context_with_artifact,  # type: ignore
@@ -267,7 +267,7 @@ async def test_publish_blog_no_token_error(tool_context_with_artifact, monkeypat
     )
 
     assert result["status"] == "error"
-    assert "GITHUB_TOKEN not configured" in result["message"]
+    assert "BLOG_GITHUB_TOKEN not configured" in result["message"]
 
 
 @pytest.mark.asyncio

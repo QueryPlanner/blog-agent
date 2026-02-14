@@ -32,9 +32,9 @@ class GitHubError(Exception):
 
 def _get_github_headers() -> dict[str, str]:
     """Get headers for GitHub API requests."""
-    token = os.getenv("GITHUB_TOKEN")
+    token = os.getenv("BLOG_GITHUB_TOKEN")
     if not token:
-        raise GitHubError("GITHUB_TOKEN not configured")
+        raise GitHubError("BLOG_GITHUB_TOKEN not configured")
     return {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github.v3+json",
