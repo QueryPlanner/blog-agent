@@ -6,9 +6,12 @@ from unittest.mock import patch
 from conftest import MockReadonlyContext
 
 from agent.prompt import (
+    return_description_publisher,
     return_description_root,
+    return_description_writer,
     return_global_instruction,
-    return_instruction_root,
+    return_instruction_publisher,
+    return_instruction_writer,
 )
 
 
@@ -40,28 +43,92 @@ class TestReturnDescriptionRoot:
         assert description1 == description2
 
 
-class TestReturnInstructionRoot:
-    """Tests for return_instruction_root function."""
+class TestReturnDescriptionWriter:
+    """Tests for return_description_writer function."""
+
+    def test_returns_non_empty_string(self) -> None:
+        """Test that function returns a non-empty description string."""
+        description = return_description_writer()
+
+        assert isinstance(description, str)
+        assert len(description) > 0
+        assert "writer" in description.lower() or "blog" in description.lower()
+
+    def test_description_is_consistent(self) -> None:
+        """Test that function returns the same description on multiple calls."""
+        description1 = return_description_writer()
+        description2 = return_description_writer()
+
+        assert description1 == description2
+
+
+class TestReturnDescriptionPublisher:
+    """Tests for return_description_publisher function."""
+
+    def test_returns_non_empty_string(self) -> None:
+        """Test that function returns a non-empty description string."""
+        description = return_description_publisher()
+
+        assert isinstance(description, str)
+        assert len(description) > 0
+        assert "publish" in description.lower()
+
+    def test_description_is_consistent(self) -> None:
+        """Test that function returns the same description on multiple calls."""
+        description1 = return_description_publisher()
+        description2 = return_description_publisher()
+
+        assert description1 == description2
+
+
+class TestReturnInstructionWriter:
+    """Tests for return_instruction_writer function."""
 
     def test_returns_non_empty_string(self) -> None:
         """Test that function returns a non-empty instruction string."""
-        instruction = return_instruction_root()
+        instruction = return_instruction_writer()
 
         assert isinstance(instruction, str)
         assert len(instruction) > 0
 
-    def test_instruction_content(self) -> None:
-        """Test that instruction contains expected guidance."""
-        instruction = return_instruction_root()
+    def test_instruction_contains_writer_guidance(self) -> None:
+        """Test that instruction contains writer-specific guidance."""
+        instruction = return_instruction_writer()
 
-        assert "<output_verbosity_spec>" in instruction
-        assert "sentences" in instruction.lower()
-        assert "bullets" in instruction.lower()
+        # Should mention the save_blog_content tool
+        assert "save_blog_content" in instruction
+        assert "YAML" in instruction or "frontmatter" in instruction.lower()
 
     def test_instruction_is_consistent(self) -> None:
         """Test that function returns the same instruction on multiple calls."""
-        instruction1 = return_instruction_root()
-        instruction2 = return_instruction_root()
+        instruction1 = return_instruction_writer()
+        instruction2 = return_instruction_writer()
+
+        assert instruction1 == instruction2
+
+
+class TestReturnInstructionPublisher:
+    """Tests for return_instruction_publisher function."""
+
+    def test_returns_non_empty_string(self) -> None:
+        """Test that function returns a non-empty instruction string."""
+        instruction = return_instruction_publisher()
+
+        assert isinstance(instruction, str)
+        assert len(instruction) > 0
+
+    def test_instruction_contains_publisher_guidance(self) -> None:
+        """Test that instruction contains publisher-specific guidance."""
+        instruction = return_instruction_publisher()
+
+        # Should mention the publish_blog_to_github tool
+        assert "publish_blog_to_github" in instruction
+        assert "GitHub" in instruction
+
+    def test_instruction_is_consistent(self) -> None:
+        """Test that function returns the same instruction on multiple calls."""
+        instruction1 = return_instruction_publisher()
+        instruction2 = return_instruction_publisher()
 
         assert instruction1 == instruction2
 
@@ -87,15 +154,6 @@ class TestReturnGlobalInstruction:
 
         assert today in instruction
         assert "date" in instruction.lower()
-
-    def test_includes_assistant_context(
-        self, mock_readonly_context: MockReadonlyContext
-    ) -> None:
-        """Test that instruction identifies role as helpful assistant."""
-        instruction = return_global_instruction(mock_readonly_context)  # type: ignore
-
-        assert "helpful" in instruction.lower()
-        assert "assistant" in instruction.lower()
 
     def test_date_updates_dynamically(
         self, mock_readonly_context: MockReadonlyContext
