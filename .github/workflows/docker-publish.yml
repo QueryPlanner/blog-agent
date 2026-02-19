@@ -88,13 +88,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # 1. Ensure project directory exists
-            if [ ! -d ~/google-adk-on-bare-metal ]; then
+            if [ ! -d ~/blog-agent ]; then
               echo "Project directory not found. Cloning..."
-              git clone https://github.com/${{ github.repository }} ~/google-adk-on-bare-metal
+              git clone https://github.com/${{ github.repository }} ~/blog-agent
             fi
 
             # 2. Navigate and Update Code
-            cd ~/google-adk-on-bare-metal
+            cd ~/blog-agent
             git pull
 
             # 3. Inject Secrets into .env (Automated Configuration)

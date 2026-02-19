@@ -1,4 +1,4 @@
-# Google ADK on Bare Metal
+# Blog Agent
 
 A **production-ready template** for building and deploying Google ADK blog_agents on your own infrastructure (bare metal, VPS, or private cloud) without the complexity or lock-in of heavy cloud providers.
 

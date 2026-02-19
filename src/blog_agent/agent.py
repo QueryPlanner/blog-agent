@@ -84,7 +84,7 @@ root_agent = SequentialAgent(
 
 # Optional App configs explicitly set to None for template documentation
 app = App(
-    name="agent",
+    name="blog_agent",
     root_agent=root_agent,
     plugins=[
         GlobalInstructionPlugin(return_global_instruction),
