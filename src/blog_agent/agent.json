@@ -1,0 +1,34 @@
+{
+  "id": "blog_agent",
+  "name": "blog_agent",
+  "version": "1.0.0",
+  "description": "An AI agent that writes a comprehensive blog post about a given topic and publishes it to a GitHub repository.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "topic": {
+        "type": "string",
+        "description": "The topic or title of the blog post."
+      },
+      "guidelines": {
+        "type": "string",
+        "description": "Optional writing guidelines or instructions."
+      }
+    },
+    "required": ["topic"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "content": {
+        "type": "string",
+        "description": "The generated blog content."
+      },
+      "url": {
+        "type": "string",
+        "description": "URL of the published blog post or pull request."
+      }
+    },
+    "required": ["content"]
+  }
+}

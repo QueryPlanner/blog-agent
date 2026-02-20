@@ -111,6 +111,12 @@ class ServerEnv(BaseModel):
         description="Whether to reload agents on file changes (local dev only)",
     )
 
+    enable_a2a: bool = Field(
+        default=False,
+        alias="ENABLE_A2A",
+        description="Whether to expose the agent as an A2A agent",
+    )
+
     agent_engine: str | None = Field(
         default=None,
         alias="AGENT_ENGINE",
@@ -189,6 +195,7 @@ class ServerEnv(BaseModel):
         print(f"LOG_LEVEL:             {self.log_level}")
         print(f"SERVE_WEB_INTERFACE:   {self.serve_web_interface}")
         print(f"RELOAD_AGENTS:         {self.reload_agents}")
+        print(f"ENABLE_A2A:            {self.enable_a2a}")
         print(f"AGENT_ENGINE:          {self.agent_engine}")
         print(f"DATABASE_URL:          {self.database_url}")
         if self.database_url:
