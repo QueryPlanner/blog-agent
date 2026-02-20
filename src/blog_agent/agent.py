@@ -1,7 +1,6 @@
 """ADK SequentialAgent configuration for blog writing and publishing."""
 
 import logging
-import os
 from typing import Any
 
 from google.adk.agents import LlmAgent, SequentialAgent
@@ -19,13 +18,15 @@ from .prompt import (
     return_instruction_writer,
 )
 from .tools import publish_blog_to_github, save_blog_content
+from .utils import AgentEnv, initialize_environment
 
 logger = logging.getLogger(__name__)
 
 logging_callbacks = LoggingCallbacks()
 
 # Determine model configuration
-model_name = os.getenv("ROOT_AGENT_MODEL", "gemini-2.5-flash")
+agent_env = initialize_environment(AgentEnv, print_config=False)
+model_name = agent_env.root_agent_model
 model: Any = model_name
 
 # Explicitly use LiteLlm for OpenRouter or other provider-prefixed models

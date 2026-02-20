@@ -248,3 +248,18 @@ class ServerEnv(BaseModel):
         except json.JSONDecodeError as e:
             msg = f"Failed to parse ALLOW_ORIGINS as JSON: {e}"
             raise ValueError(msg) from e
+
+
+class AgentEnv(BaseModel):
+    """Environment configuration for the ADK agent itself."""
+
+    root_agent_model: str = Field(
+        default="gemini-2.5-flash",
+        alias="ROOT_AGENT_MODEL",
+        description="The LLM model to use for the root agent",
+    )
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="ignore",
+    )
