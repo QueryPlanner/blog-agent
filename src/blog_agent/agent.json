@@ -1,0 +1,25 @@
+{
+  "name": "blog_agent",
+  "description": "An AI agent that writes a comprehensive blog post about a given topic and publishes it to a GitHub repository.",
+  "version": "1.0.0",
+  "url": "http://blog-agent:8080/a2a/blog_agent",
+  "capabilities": {
+    "extensions": null,
+    "pushNotifications": false,
+    "stateTransitionHistory": true,
+    "streaming": false
+  },
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "skills": [
+    {
+      "id": "write_and_publish_blog",
+      "name": "Write and Publish Blog",
+      "description": "Writes a blog given a topic and guidelines, then automatically publishes it.",
+      "tags": ["writing", "publishing", "blog", "github"],
+      "inputModes": ["text"],
+      "outputModes": ["text"]
+    }
+  ],
+  "protocolVersion": "0.3.0"
+}

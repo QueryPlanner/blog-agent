@@ -111,6 +111,12 @@ class ServerEnv(BaseModel):
         description="Whether to reload agents on file changes (local dev only)",
     )
 
+    enable_a2a: bool = Field(
+        default=False,
+        alias="ENABLE_A2A",
+        description="Whether to expose the agent as an A2A agent",
+    )
+
     agent_engine: str | None = Field(
         default=None,
         alias="AGENT_ENGINE",
@@ -189,6 +195,7 @@ class ServerEnv(BaseModel):
         print(f"LOG_LEVEL:             {self.log_level}")
         print(f"SERVE_WEB_INTERFACE:   {self.serve_web_interface}")
         print(f"RELOAD_AGENTS:         {self.reload_agents}")
+        print(f"ENABLE_A2A:            {self.enable_a2a}")
         print(f"AGENT_ENGINE:          {self.agent_engine}")
         print(f"DATABASE_URL:          {self.database_url}")
         if self.database_url:
@@ -241,3 +248,18 @@ class ServerEnv(BaseModel):
         except json.JSONDecodeError as e:
             msg = f"Failed to parse ALLOW_ORIGINS as JSON: {e}"
             raise ValueError(msg) from e
+
+
+class AgentEnv(BaseModel):
+    """Environment configuration for the ADK agent itself."""
+
+    root_agent_model: str = Field(
+        default="gemini-2.5-flash",
+        alias="ROOT_AGENT_MODEL",
+        description="The LLM model to use for the root agent",
+    )
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="ignore",
+    )

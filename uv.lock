@@ -3,6 +3,35 @@ revision = 3
 requires-python = "==3.13.*"
 
 [[package]]
+name = "a2a-protocol"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dataclasses" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2a/13/c240e134052193e37d0f52d6550aee7d9a335c9f9d66536a31d0bbd9430a/a2a_protocol-0.1.0.tar.gz", hash = "sha256:8edbccd60c5a8c77063df5cec3568b0495d15e5e7de86190e0de19ab14c434e4", size = 6329, upload-time = "2025-04-17T07:44:23.856Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/d3/c08900fbac76f416028cccf6734e0c3e23013fe5ded6d518031e86f19825/a2a_protocol-0.1.0-py3-none-any.whl", hash = "sha256:a2b5b3b57ce8f8fa19e2a94c90f301e283b797510d578d46411253cc41edcf05", size = 8737, upload-time = "2025-04-17T07:44:22.813Z" },
+]
+
+[[package]]
+name = "a2a-sdk"
+version = "0.3.23"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core" },
+    { name = "httpx" },
+    { name = "httpx-sse" },
+    { name = "protobuf" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2d/6a/2fe24e0a85240a651006c12f79bdb37156adc760a96c44bc002ebda77916/a2a_sdk-0.3.23.tar.gz", hash = "sha256:7c46b8572c4633a2b41fced2833e11e62871e8539a5b3c782ba2ba1e33d213c2", size = 255265, upload-time = "2026-02-17T08:34:34.648Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/20/77d119f19ab03449d3e6bc0b1f11296d593dae99775c1d891ab1e290e416/a2a_sdk-0.3.23-py3-none-any.whl", hash = "sha256:8c2f01dffbfdd3509eafc15c4684743e6ae75e69a5df5d6f87be214c948e7530", size = 145689, upload-time = "2026-02-17T08:34:33.263Z" },
+]
+
+[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -179,8 +208,9 @@ name = "blog-agent"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "a2a-protocol" },
     { name = "asyncpg" },
-    { name = "google-adk" },
+    { name = "google-adk", extra = ["a2a"] },
     { name = "google-auth" },
     { name = "google-cloud-logging" },
     { name = "greenlet" },
@@ -210,8 +240,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "a2a-protocol", specifier = ">=0.1.0" },
     { name = "asyncpg", specifier = ">=0.30.0" },
-    { name = "google-adk", specifier = "==1.25.0" },
+    { name = "google-adk", extras = ["a2a"], specifier = "==1.25.0" },
     { name = "google-auth", specifier = ">=2.40.3,<3.0.0" },
     { name = "google-cloud-logging", specifier = ">=3.12.1,<4.0.0" },
     { name = "greenlet", specifier = ">=3.0.0" },
@@ -412,6 +443,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dataclasses"
+version = "0.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/12/7919c5d8b9c497f9180db15ea8ead6499812ea8264a6ae18766d93c59fe5/dataclasses-0.8.tar.gz", hash = "sha256:8479067f342acf957dc82ec415d355ab5edb7e7646b90dc6e2fd1d96ad084c97", size = 36581, upload-time = "2020-11-13T14:40:30.139Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fe/ca/75fac5856ab5cfa51bbbcefa250182e50441074fdc3f803f6e76451fab43/dataclasses-0.8-py3-none-any.whl", hash = "sha256:0201d89fa866f68c8ebd9d08ee6ff50c0b255f8ec63a71c16fda7af82bb887bf", size = 19041, upload-time = "2020-11-13T14:40:29.194Z" },
+]
+
+[[package]]
 name = "debugpy"
 version = "1.8.19"
 source = { registry = "https://pypi.org/simple" }
@@ -607,6 +647,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6e/7f/413a6c4daacaf9d7d1415ab83e6be11ed967d8a61238b5ba4271c1d0ab95/google_adk-1.25.0.tar.gz", hash = "sha256:3ec69d0b3071759395cc6c4f5347d6da662aff0727235b2048f6313932d678cf", size = 2220229, upload-time = "2026-02-11T23:22:51.645Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/92/069cfb99d0dde5c5dfb9f7fd2a6fe3bbe0ab988e53f0e738f3aac0333f88/google_adk-1.25.0-py3-none-any.whl", hash = "sha256:2a07ff626e7d2a575a288d58ec6eb10e02cd2203f8d63c7a7698b9af64d73d12", size = 2578255, upload-time = "2026-02-11T23:22:49.862Z" },
+]
+
+[package.optional-dependencies]
+a2a = [
+    { name = "a2a-sdk" },
 ]
 
 [[package]]

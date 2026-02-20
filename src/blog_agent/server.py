@@ -62,6 +62,7 @@ app: FastAPI = get_fast_api_app(
     memory_service_uri=None,
     allow_origins=env.allow_origins_list,
     web=env.serve_web_interface,
+    a2a=env.enable_a2a,
     reload_agents=env.reload_agents,
 )
 
@@ -92,6 +93,7 @@ def main() -> None:
         LOG_LEVEL: Logging verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         SERVE_WEB_INTERFACE: Whether to serve the web interface (true/false)
         RELOAD_AGENTS: Whether to reload agents on file changes (true/false)
+        ENABLE_A2A: Whether to expose the agent as an A2A agent (true/false)
         AGENT_ENGINE: Agent Engine instance for session and memory
         DATABASE_URL: Postgres URL for session and memory
         OPENROUTER_API_KEY: Key for LiteLLM/OpenRouter
