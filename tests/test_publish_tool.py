@@ -155,16 +155,21 @@ async def test_publish_blog_with_custom_repo(
 
         mock_put.return_value = MagicMock(status_code=201)
 
-        result = await publish_blog_to_github(
-            tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
-            branch_name="blog/test",
-            file_name="test.md",
-            commit_message="feat: add test post",
-            pr_title="Add test post",
-            pr_body="Body text",
-            repo_owner="custom-owner",
-            repo_name="custom-repo",
-        )
+        with patch.dict(
+            "os.environ",
+            {
+                "BLOG_REPO_OWNER": "custom-owner",
+                "BLOG_REPO_NAME": "custom-repo",
+            },
+        ):
+            result = await publish_blog_to_github(
+                tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
+                branch_name="blog/test",
+                file_name="test.md",
+                commit_message="feat: add test post",
+                pr_title="Add test post",
+                pr_body="Body text",
+            )
 
         assert result["status"] == "success"
         # Verify custom repo was used
