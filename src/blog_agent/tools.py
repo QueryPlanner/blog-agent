@@ -105,8 +105,6 @@ async def publish_blog_to_github(
     commit_message: str,
     pr_title: str,
     pr_body: str,
-    repo_owner: str | None = None,
-    repo_name: str | None = None,
 ) -> dict[str, Any]:
     """Publish the saved blog post by creating a branch, adding a file, and PR.
 
@@ -122,10 +120,6 @@ async def publish_blog_to_github(
         commit_message: Commit message for the changes
         pr_title: Title for the pull request
         pr_body: Body/description for the pull request
-        repo_owner: GitHub username or organization (e.g., "QueryPlanner").
-                    Uses BLOG_REPO_OWNER env var if not provided.
-        repo_name: Name of the repository (e.g., "blogs").
-                   Uses BLOG_REPO_NAME env var if not provided.
 
     Returns:
         A dictionary with status, PR URL, and any error messages.
@@ -142,10 +136,10 @@ async def publish_blog_to_github(
         content = artifact.text
         logger.info(f"Loaded blog content from artifact ({len(content)} chars)")
 
-        # Get repo config from environment if not provided
+        # Get repo config from environment
         repo_config = _get_repo_config()
-        repo_owner = repo_owner or repo_config["owner"]
-        repo_name = repo_name or repo_config["repo"]
+        repo_owner = repo_config["owner"]
+        repo_name = repo_config["repo"]
         content_path = repo_config["content_path"]
         full_file_path = f"{content_path}/{file_name}"
 
