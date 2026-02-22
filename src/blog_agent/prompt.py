@@ -121,8 +121,6 @@ Call the publish_blog_to_github tool with these exact parameters:
 - commit_message: "Add blog: {title}"
 - pr_title: "Blog: {title}"
 - pr_body: "This PR adds a new blog post: {title}"
-- repo_owner: (omit to use default)
-- repo_name: (omit to use default)
 
 # Important
 
