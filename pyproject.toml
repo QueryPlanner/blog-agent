@@ -22,6 +22,7 @@ dependencies = [
     "openinference-instrumentation-google-adk>=0.1.8",
     "requests>=2.32.0,<3.0.0",
     "a2a-protocol>=0.1.0",
+    "pillow>=12.1.1",
 ]
 
 [project.scripts]

@@ -145,7 +145,7 @@ class TestAgentIntegration:
                     assert hasattr(tool, "__class__")
 
     def test_writer_blog_agent_has_save_tool(self) -> None:
-        """Verify writer blog_agent has the save_blog_content tool."""
+        """Verify writer blog_agent has image and save tools."""
         blog_agent = app.root_agent
         assert blog_agent is not None
         sequential_blog_agent = as_sequential_blog_agent(blog_agent)
@@ -162,7 +162,7 @@ class TestAgentIntegration:
 
         # Writer should have tools
         assert typed_writer.tools is not None
-        assert len(typed_writer.tools) >= 1
+        assert len(typed_writer.tools) >= 2
 
     def test_publisher_blog_agent_has_publish_tool(self) -> None:
         """Verify publisher blog_agent has the publish_blog_to_github tool."""

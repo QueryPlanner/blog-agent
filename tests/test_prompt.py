@@ -95,8 +95,10 @@ class TestReturnInstructionWriter:
         """Test that instruction contains writer-specific guidance."""
         instruction = return_instruction_writer()
 
-        # Should mention the save_blog_content tool
+        # Should mention the image and save tools
+        assert "generate_blog_image" in instruction
         assert "save_blog_content" in instruction
+        assert "./images/your-slug.png" in instruction
         assert "YAML" in instruction or "frontmatter" in instruction.lower()
 
     def test_instruction_is_consistent(self) -> None:

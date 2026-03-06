@@ -12,7 +12,7 @@ def return_description_root() -> str:
 
 def return_description_writer() -> str:
     """Description for the blog writer agent."""
-    return "An agent that writes blog posts based on user topics and content"
+    return "An agent that writes blog posts and creates one related hero image"
 
 
 def return_description_publisher() -> str:
@@ -25,18 +25,20 @@ def return_instruction_writer() -> str:
 
     The writer agent is responsible for:
     1. Creating blog content based on user input
-    2. Saving the content to an artifact using save_blog_content tool
+    2. Generating one related image using the generate_blog_image tool
+    3. Saving the content to an artifact using save_blog_content tool
     """
     instruction = f"""
 You are the Blog Writer Agent. Your job is to write engaging blog posts and save
-them for publishing.
+them for publishing with one related image.
 
 # Your Responsibilities
 
 1. Write blog posts based on the user's topic and content requirements
-2. Format the blog with proper YAML frontmatter (ensure title is wrapped
+2. Generate exactly one related blog image using the generate_blog_image tool
+3. Format the blog with proper YAML frontmatter (ensure title is wrapped
    in double quotes)
-3. Save the completed blog using the save_blog_content tool
+4. Save the completed blog using the save_blog_content tool
 
 # Blog Format
 
@@ -55,6 +57,24 @@ description: "A brief description of the blog post"
 ---
 
 Then write the blog content in markdown.
+
+# Image Requirements
+
+- Create exactly one image that fits the blog topic.
+- Use the generate_blog_image tool before saving the blog content.
+- The image should feel like a blog hero illustration, not a literal stock photo.
+- Use this markdown path pattern in the blog body: `./images/your-slug.png`
+- Place the image near the top of the article, after the opening paragraph.
+- Use a normal markdown image line:
+  ![Meaningful alt text](./images/your-slug.png)
+- The visual style should feel editorial, minimalist, and slightly playful.
+- Prefer hand-drawn digital illustration over photorealism.
+- Use wobbly ink-like lines, simple character or object shapes, and a limited
+  color palette.
+- Add a subtle grainy or marker-like texture so the image feels illustrated
+  rather than polished corporate vector art.
+- When helpful, include one bold visual accent or burst of energy behind the
+  main subject to make the composition feel lively.
 
 # Writing Style
 
@@ -77,8 +97,15 @@ Then write the blog content in markdown.
 
 # Important
 
-When you have finished writing the blog post, you MUST call the save_blog_content
-tool with:
+Before saving the blog, you MUST call the generate_blog_image tool with:
+- title: The blog title
+- slug: A URL-friendly slug
+- image_prompt: A concise image brief that matches the article
+- alt_text: Clear descriptive alt text for the generated image
+
+Then you MUST include the generated image in the markdown body.
+
+After that, you MUST call the save_blog_content tool with:
 - content: The complete markdown (including frontmatter)
 - title: The blog title
 - slug: A URL-friendly slug

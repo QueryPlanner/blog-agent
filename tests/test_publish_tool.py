@@ -7,7 +7,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 from google.genai import types
 
-from blog_agent.tools import publish_blog_to_github
+from blog_agent.tools import (
+    BLOG_ARTIFACT_FILENAME,
+    BLOG_IMAGE_ARTIFACT_FILENAME,
+    publish_blog_to_github,
+)
 
 
 class MockState:
@@ -53,7 +57,7 @@ class MockArtifactToolContext:
         version: int | None = None,
     ) -> types.Part | None:
         """Mock load_artifact that returns stored artifact."""
-        if self._artifact_content:
+        if filename == BLOG_ARTIFACT_FILENAME and self._artifact_content:
             return types.Part(text=self._artifact_content)
         return self._saved_artifacts.get(filename)
 
@@ -355,3 +359,63 @@ async def test_publish_blog_uses_artifact_content(
 
         # Should match the artifact content
         assert decoded_content == "# Test Blog\n\nThis is the blog content."
+
+
+@pytest.mark.asyncio
+async def test_publish_blog_uploads_generated_image(
+    tool_context_with_artifact: MockArtifactToolContext, github_env: None
+) -> None:
+    """Test that the publisher uploads the generated image before the markdown file."""
+    image_artifact = types.Part.from_bytes(
+        data=b"fake-png-bytes",
+        mime_type="image/png",
+    )
+    await tool_context_with_artifact.save_artifact(
+        BLOG_IMAGE_ARTIFACT_FILENAME,
+        image_artifact,
+    )
+
+    with (
+        patch("requests.get") as mock_get,
+        patch("requests.post") as mock_post,
+        patch("requests.put") as mock_put,
+    ):
+        mock_get.side_effect = [
+            MagicMock(status_code=200, json=lambda: {"default_branch": "main"}),
+            MagicMock(
+                status_code=200, json=lambda: {"object": {"sha": "base-sha-123"}}
+            ),
+            MagicMock(status_code=404),
+            MagicMock(status_code=404),
+        ]
+
+        mock_post.side_effect = [
+            MagicMock(status_code=201),
+            MagicMock(
+                status_code=201, json=lambda: {"html_url": "https://github.com/pr/3"}
+            ),
+        ]
+
+        mock_put.return_value = MagicMock(status_code=201)
+
+        result = await publish_blog_to_github(
+            tool_context=tool_context_with_artifact,  # type: ignore[arg-type]
+            branch_name="blog/test",
+            file_name="test.md",
+            commit_message="feat: add test post",
+            pr_title="Add test post",
+            pr_body="Body text",
+        )
+
+    assert result["status"] == "success"
+    assert result["image_file_path"] == "src/data/blog/images/test-blog.png"
+    assert mock_put.call_count == 2
+
+    first_put_payload = mock_put.call_args_list[0].kwargs["json"]
+    second_put_payload = mock_put.call_args_list[1].kwargs["json"]
+
+    assert first_put_payload["message"] == "feat: add test post (image)"
+    assert base64.b64decode(first_put_payload["content"]) == b"fake-png-bytes"
+    assert base64.b64decode(second_put_payload["content"]).decode("utf-8") == (
+        "# Test Blog\n\nThis is the blog content."
+    )

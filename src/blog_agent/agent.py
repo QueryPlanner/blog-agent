@@ -17,7 +17,7 @@ from .prompt import (
     return_instruction_publisher,
     return_instruction_writer,
 )
-from .tools import publish_blog_to_github, save_blog_content
+from .tools import generate_blog_image, publish_blog_to_github, save_blog_content
 from .utils import AgentEnv, initialize_environment
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ blog_writer_agent = LlmAgent(
     after_agent_callback=logging_callbacks.after_agent,
     model=model,
     instruction=return_instruction_writer(),
-    tools=[save_blog_content],
+    tools=[generate_blog_image, save_blog_content],
     before_model_callback=logging_callbacks.before_model,
     after_model_callback=logging_callbacks.after_model,
     before_tool_callback=logging_callbacks.before_tool,

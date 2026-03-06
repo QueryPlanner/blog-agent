@@ -3,16 +3,31 @@
 import base64
 import logging
 import os
+from io import BytesIO
 from typing import Any
 
 import requests
+from google import genai
 from google.adk.tools import ToolContext
 from google.genai import types
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
 GITHUB_API_URL = "https://api.github.com"
 BLOG_ARTIFACT_FILENAME = "blog_content.md"
+BLOG_IMAGE_ARTIFACT_FILENAME = "blog_image.png"
+BLOG_IMAGE_DIRECTORY_NAME = "images"
+BLOG_IMAGE_MIME_TYPE = "image/png"
+BLOG_IMAGE_PATH_TEMPLATE = "./images/{slug}.png"
+DEFAULT_BLOG_IMAGE_MODEL = "gemini-3.1-flash-image-preview"
+BLOG_IMAGE_STYLE_GUIDANCE = (
+    "Use an editorial, minimalist, slightly playful illustration style. Favor "
+    "hand-drawn digital artwork over photorealism, with wobbly ink-like lines, "
+    "simple shapes, a limited color palette, and a subtle grainy or "
+    "marker-like texture. When it fits the composition, add one bold visual "
+    "accent or burst of energy behind the main subject."
+)
 
 
 class GitHubError(Exception):
@@ -49,6 +64,159 @@ def _get_repo_config() -> dict[str, str]:
         "repo": os.getenv("BLOG_REPO_NAME", "blogs"),
         "content_path": os.getenv("BLOG_CONTENT_PATH", "src/data/blog"),
     }
+
+
+def _get_blog_image_model() -> str:
+    """Get the configured image generation model."""
+    return os.getenv("BLOG_IMAGE_MODEL", DEFAULT_BLOG_IMAGE_MODEL)
+
+
+def _build_blog_image_markdown_path(slug: str) -> str:
+    """Build the markdown image path used inside the blog post."""
+    return BLOG_IMAGE_PATH_TEMPLATE.format(slug=slug)
+
+
+def _build_blog_image_repo_path(content_path: str, slug: str) -> str:
+    """Build the repository path for the generated image asset."""
+    return f"{content_path}/{BLOG_IMAGE_DIRECTORY_NAME}/{slug}.png"
+
+
+def _build_image_generation_prompt(title: str, image_prompt: str) -> str:
+    """Build a detailed prompt for the blog image generator."""
+    prompt_sections = [
+        f'Create one editorial illustration for the blog post titled "{title}".',
+        f"Image brief: {image_prompt}",
+        "Match this visual style as closely as possible:",
+        BLOG_IMAGE_STYLE_GUIDANCE,
+        (
+            "Return a clean single illustration with no watermark, no product UI, "
+            "and no extra border. The image should feel polished enough for a blog "
+            "hero image."
+        ),
+    ]
+    return "\n\n".join(prompt_sections)
+
+
+def _extract_response_text(response: Any) -> str:
+    """Collect any text parts returned by the image model."""
+    response_parts = getattr(response, "parts", None)
+    if not response_parts:
+        return ""
+
+    text_segments: list[str] = []
+    for part in response_parts:
+        part_text = getattr(part, "text", None)
+        if part_text:
+            text_segments.append(part_text)
+
+    return "\n".join(text_segments).strip()
+
+
+def _extract_png_bytes(response: Any) -> bytes | None:
+    """Extract the first generated image and normalize it as PNG bytes."""
+    response_parts = getattr(response, "parts", None)
+    if not response_parts:
+        return None
+
+    for part in response_parts:
+        inline_data = getattr(part, "inline_data", None)
+        if inline_data is None:
+            continue
+
+        raw_image_bytes = getattr(inline_data, "data", None)
+        mime_type = getattr(inline_data, "mime_type", None)
+
+        if isinstance(raw_image_bytes, bytes):
+            if mime_type == BLOG_IMAGE_MIME_TYPE:
+                return raw_image_bytes
+
+            if isinstance(mime_type, str) and mime_type.startswith("image/"):
+                source_image = Image.open(BytesIO(raw_image_bytes))
+                image_buffer = BytesIO()
+                source_image.save(image_buffer, format="PNG")
+                return image_buffer.getvalue()
+
+        generated_image = part.as_image()
+        if generated_image is None:
+            continue
+
+        image_buffer = BytesIO()
+        generated_image.save(image_buffer, "PNG")
+        return image_buffer.getvalue()
+
+    return None
+
+
+def _get_existing_file_sha(
+    *,
+    base_url: str,
+    headers: dict[str, str],
+    branch_name: str,
+    file_path: str,
+) -> str | None:
+    """Return the current SHA for a file on the target branch, if it exists."""
+    response = requests.get(
+        f"{base_url}/contents/{file_path}",
+        headers=headers,
+        params={"ref": branch_name},
+        timeout=30,
+    )
+
+    if response.status_code == 404:
+        return None
+
+    if response.status_code != 200:
+        raise GitHubError(
+            message=f"Failed to inspect file: {response.status_code}",
+            status_code=response.status_code,
+            details=response.text,
+        )
+
+    file_details = response.json()
+    file_sha = file_details.get("sha")
+    if isinstance(file_sha, str):
+        return file_sha
+
+    return None
+
+
+def _upload_file_to_github(
+    *,
+    base_url: str,
+    headers: dict[str, str],
+    branch_name: str,
+    file_path: str,
+    file_bytes: bytes,
+    commit_message: str,
+) -> None:
+    """Create or update one file on the target branch."""
+    existing_file_sha = _get_existing_file_sha(
+        base_url=base_url,
+        headers=headers,
+        branch_name=branch_name,
+        file_path=file_path,
+    )
+
+    file_request_body: dict[str, str] = {
+        "message": commit_message,
+        "content": base64.b64encode(file_bytes).decode("utf-8"),
+        "branch": branch_name,
+    }
+    if existing_file_sha:
+        file_request_body["sha"] = existing_file_sha
+
+    response = requests.put(
+        f"{base_url}/contents/{file_path}",
+        headers=headers,
+        json=file_request_body,
+        timeout=30,
+    )
+    if response.status_code not in (200, 201):
+        raise GitHubError(
+            message=f"Failed to create file: {response.status_code}",
+            status_code=response.status_code,
+            details=response.text,
+        )
 
 
 async def save_blog_content(
@@ -95,6 +263,75 @@ async def save_blog_content(
         return {
             "status": "error",
             "message": f"Failed to save blog content: {e}",
+        }
+
+
+async def generate_blog_image(
+    tool_context: ToolContext,
+    title: str,
+    slug: str,
+    image_prompt: str,
+    alt_text: str,
+) -> dict[str, Any]:
+    """Generate one blog image and save it as an artifact for publishing."""
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_api_key:
+        return {
+            "status": "error",
+            "message": "GEMINI_API_KEY not configured",
+        }
+
+    image_model = _get_blog_image_model()
+    full_prompt = _build_image_generation_prompt(title=title, image_prompt=image_prompt)
+
+    try:
+        client = genai.Client()
+        response = client.models.generate_content(
+            model=image_model,
+            contents=full_prompt,
+        )
+
+        image_bytes = _extract_png_bytes(response)
+        if image_bytes is None:
+            response_text = _extract_response_text(response)
+            error_details = response_text or "The model did not return an image."
+            return {
+                "status": "error",
+                "message": "Failed to generate blog image",
+                "details": error_details,
+            }
+
+        artifact = types.Part.from_bytes(
+            data=image_bytes,
+            mime_type=BLOG_IMAGE_MIME_TYPE,
+        )
+        version = await tool_context.save_artifact(
+            BLOG_IMAGE_ARTIFACT_FILENAME, artifact
+        )
+
+        image_markdown_path = _build_blog_image_markdown_path(slug)
+        image_markdown = f"![{alt_text}]({image_markdown_path})"
+
+        tool_context.state["image_alt_text"] = alt_text
+        tool_context.state["image_markdown_path"] = image_markdown_path
+        tool_context.state["image_file_name"] = f"{slug}.png"
+        tool_context.state["image_prompt"] = image_prompt
+
+        logger.info(f"Saved blog image to artifact version {version}")
+
+        return {
+            "status": "success",
+            "message": f"Blog image generated successfully (version {version})",
+            "image_markdown": image_markdown,
+            "image_path": image_markdown_path,
+            "alt_text": alt_text,
+        }
+
+    except Exception as e:
+        logger.exception("Failed to generate blog image")
+        return {
+            "status": "error",
+            "message": f"Failed to generate blog image: {e}",
         }
 
 
@@ -196,38 +433,35 @@ async def publish_blog_to_github(
                 "details": resp.text,
             }
 
-        # 4. Check if file already exists to get its SHA (for updates)
-        file_sha = None
-        resp = requests.get(
-            f"{base_url}/contents/{full_file_path}",
-            headers=headers,
-            params={"ref": branch_name},
-            timeout=30,
-        )
-        if resp.status_code == 200:
-            file_sha = resp.json().get("sha")
+        # 4. Upload the generated image first when one exists
+        image_file_path = None
+        image_artifact = await tool_context.load_artifact(BLOG_IMAGE_ARTIFACT_FILENAME)
+        image_blob = None if image_artifact is None else image_artifact.inline_data
+        image_bytes = None if image_blob is None else image_blob.data
 
-        # 5. Create or update the file with exact content from artifact
-        file_data = {
-            "message": commit_message,
-            "content": base64.b64encode(content.encode("utf-8")).decode("utf-8"),
-            "branch": branch_name,
-        }
-        if file_sha:
-            file_data["sha"] = file_sha
+        if image_bytes:
+            slug = str(tool_context.state.get("slug", file_name.removesuffix(".md")))
+            image_file_path = _build_blog_image_repo_path(content_path, slug)
+            image_commit_message = f"{commit_message} (image)"
 
-        resp = requests.put(
-            f"{base_url}/contents/{full_file_path}",
+            _upload_file_to_github(
+                base_url=base_url,
+                headers=headers,
+                branch_name=branch_name,
+                file_path=image_file_path,
+                file_bytes=image_bytes,
+                commit_message=image_commit_message,
+            )
+
+        # 5. Create or update the markdown file with exact content from artifact
+        _upload_file_to_github(
+            base_url=base_url,
             headers=headers,
-            json=file_data,
-            timeout=30,
+            branch_name=branch_name,
+            file_path=full_file_path,
+            file_bytes=content.encode("utf-8"),
+            commit_message=commit_message,
         )
-        if resp.status_code not in (200, 201):
-            return {
-                "status": "error",
-                "message": f"Failed to create file: {resp.status_code}",
-                "details": resp.text,
-            }
 
         # 6. Create pull request
         resp = requests.post(
@@ -277,6 +511,7 @@ async def publish_blog_to_github(
             "pr_url": pr_url,
             "branch": branch_name,
             "file_path": full_file_path,
+            "image_file_path": image_file_path,
         }
 
     except GitHubError as e:

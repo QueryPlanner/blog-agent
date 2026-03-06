@@ -7,8 +7,10 @@ import pytest
 from google.genai import types
 
 from blog_agent.tools import (
+    BLOG_ARTIFACT_FILENAME,
     GitHubError,
     _get_github_headers,
+    generate_blog_image,
     publish_blog_to_github,
     save_blog_content,
 )
@@ -57,7 +59,7 @@ class MockArtifactToolContext:
         filename: str,
         version: int | None = None,
     ) -> types.Part | None:
-        if self._artifact_content:
+        if filename == BLOG_ARTIFACT_FILENAME and self._artifact_content:
             return types.Part(text=self._artifact_content)
         return self._saved_artifacts.get(filename)
 
@@ -85,6 +87,66 @@ class TestSaveBlogContentErrors:
         assert result["status"] == "error"
         assert "Failed to save blog content" in result["message"]
         assert "Artifact service down" in result["message"]
+
+
+class TestGenerateBlogImageErrors:
+    @pytest.mark.asyncio
+    async def test_generate_blog_image_requires_api_key(
+        self, tool_context: MockArtifactToolContext, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test that the tool fails fast when GEMINI_API_KEY is missing."""
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+
+        result = await generate_blog_image(
+            tool_context=tool_context,  # type: ignore[arg-type]
+            title="Test title",
+            slug="test-title",
+            image_prompt="Test prompt",
+            alt_text="Test alt text",
+        )
+
+        assert result["status"] == "error"
+        assert result["message"] == "GEMINI_API_KEY not configured"
+
+    @pytest.mark.asyncio
+    async def test_generate_blog_image_returns_model_text_when_no_image(
+        self, tool_context: MockArtifactToolContext, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test that model text is surfaced when image generation returns no image."""
+
+        class FakeTextPart:
+            def __init__(self, text: str) -> None:
+                self.text = text
+                self.inline_data = None
+
+        class FakeResponse:
+            def __init__(self) -> None:
+                self.parts = [FakeTextPart("The request was rejected.")]
+
+        class FakeModels:
+            def generate_content(self, model: str, contents: str) -> FakeResponse:
+                assert model
+                assert contents
+                return FakeResponse()
+
+        class FakeClient:
+            def __init__(self) -> None:
+                self.models = FakeModels()
+
+        monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+
+        with patch("blog_agent.tools.genai.Client", return_value=FakeClient()):
+            result = await generate_blog_image(
+                tool_context=tool_context,  # type: ignore[arg-type]
+                title="Test title",
+                slug="test-title",
+                image_prompt="Test prompt",
+                alt_text="Test alt text",
+            )
+
+        assert result["status"] == "error"
+        assert result["message"] == "Failed to generate blog image"
+        assert result["details"] == "The request was rejected."
 
 
 class TestPublishBlogErrors:
