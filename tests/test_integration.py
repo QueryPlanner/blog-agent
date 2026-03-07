@@ -120,8 +120,11 @@ class TestAgentIntegration:
 
             # Each sub-blog_agent should have instructions
             if typed_sub.instruction is not None:
-                assert isinstance(typed_sub.instruction, str)
-                assert len(typed_sub.instruction) > 0
+                assert callable(typed_sub.instruction) or isinstance(
+                    typed_sub.instruction, str
+                )
+                if isinstance(typed_sub.instruction, str):
+                    assert len(typed_sub.instruction) > 0
 
             # Each sub-blog_agent should have a description
             if typed_sub.description is not None:

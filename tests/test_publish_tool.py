@@ -14,16 +14,16 @@ from blog_agent.tools import (
 
 
 class MockState:
-    def __init__(self, data: dict[str, str] | None = None) -> None:
+    def __init__(self, data: dict[str, Any] | None = None) -> None:
         self.data = data or {}
 
-    def get(self, key: str, default: str | None = None) -> str | None:
+    def get(self, key: str, default: Any | None = None) -> Any | None:
         return self.data.get(key, default)
 
-    def __setitem__(self, key: str, value: str) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         self.data[key] = value
 
-    def __getitem__(self, key: str) -> str:
+    def __getitem__(self, key: str) -> Any:
         return self.data[key]
 
 

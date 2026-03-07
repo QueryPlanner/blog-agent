@@ -80,16 +80,20 @@ When you write a blog post, you MUST use storytelling, analogies, and anecdotes
 
 You MUST also generate images to accompany these stories. To make the images engaging:
 1. Invent a Protagonist: At the start of the article, invent a simple, recurring
-   character who will appear in the images. Create a 1-sentence "Character
-   Design Sheet" (e.g., "A young boy with messy red hair wearing a yellow
-   hoodie and thick black glasses").
+   character who will appear in the images. Write the `character_description` so that
+   it flows naturally right after the phrase "A minimalist, \
+   hand-drawn digital illustration of ".
+   (e.g., "a smiling girl with long grey hair and glasses. \
+   She is wearing a simple black dress.")
 2. Anchor Images to the Narrative: Do not generate abstract technical diagrams.
    Generate images of your protagonist interacting with the specific analogies
-   in your text. If your text compares debugging to fixing a rusty Toyota, the
-   image MUST show your protagonist fixing a rusty Toyota.
-3. Maintain Consistency: You MUST include your exact Character Design Sheet in
-   EVERY image generation prompt you write for this article by passing it to the
-   character_description parameter of the generate_blog_image tool.
+   in your text. Write the `scene_description` as continuous sentences describing the
+   action and background. (e.g., "She stands triumphantly on a tangled mess of red,
+   yellow, and white electrical cables. Above her head, she holds a silver sword with
+   the handwritten text 'NOT TOO PROBLEM SPECIFIC!!!' on the blade. A jagged, bright
+   yellow 'action burst' shape is behind her.")
+3. Maintain Consistency: You MUST use the exact same character_description across
+   EVERY image generation prompt you write for this article.
 
 # Writing Style
 
@@ -115,9 +119,11 @@ You MUST also generate images to accompany these stories. To make the images eng
 Before saving the blog, you MUST call the generate_blog_image tool 3 to 5 times with:
 - title: The blog title
 - image_filename: A unique, URL-friendly filename ending in .png (e.g., "hero.png")
-- character_description: Your 1-sentence Character Design Sheet
-- scene_description: A concise description of the scene and how the character
-  interacts with the analogy
+- character_description: Your protagonist's appearance (e.g., "a smiling \
+  girl with long grey hair and glasses. She is wearing a simple black dress.")
+- scene_description: The action and background setting (e.g., "She stands \
+  triumphantly on a tangled mess of electrical cables. A jagged, bright \
+  yellow 'action burst' shape is behind her.")
 - alt_text: Clear descriptive alt text for the generated image
 
 Then you MUST include all the generated images in the markdown body using their
@@ -134,7 +140,7 @@ to publish yourself - that is handled by the next agent.
     return instruction
 
 
-def return_instruction_publisher() -> str:
+def return_instruction_publisher(ctx: ReadonlyContext | None = None) -> str:
     """Instructions for the blog publisher agent.
 
     The publisher agent is responsible for:
@@ -144,7 +150,10 @@ def return_instruction_publisher() -> str:
     Note: The publisher does NOT see the blog content - it only sees metadata
     from state (title, slug) and uses the tool to publish the exact content.
     """
-    instruction = """
+    title = ctx.state.get("title", "{title}") if ctx else "{title}"
+    slug = ctx.state.get("slug", "{slug}") if ctx else "{slug}"
+
+    instruction = f"""
 You are the Blog Publisher Agent. Your job is to publish the blog post that was
 written by the Blog Writer Agent.
 

@@ -21,10 +21,8 @@ BLOG_IMAGE_MIME_TYPE = "image/png"
 BLOG_IMAGE_PATH_TEMPLATE = "./images/{image_filename}"
 DEFAULT_BLOG_IMAGE_MODEL = "gemini-3.1-flash-image-preview"
 BLOG_IMAGE_STYLE_GUIDANCE = (
-    "Hand-drawn digital illustration, whiteboard doodle style, white background, "
-    "black ink outlines. Mostly grayscale shading, but featuring one or two "
-    "bright, vibrant accent colors to highlight the main action. Cute, "
-    "whimsical comic style, tech humor."
+    "The art style should have wobbly ink lines and a grainy, marker-like texture "
+    "with a limited color palette."
 )
 
 
@@ -83,14 +81,10 @@ def _build_image_generation_prompt(
     title: str, character_description: str, scene_description: str
 ) -> str:
     """Build a detailed prompt for the blog image generator."""
-    prompt_sections = [
-        f'Create one illustration for the blog post titled "{title}".',
-        "Match this visual style exactly:",
-        BLOG_IMAGE_STYLE_GUIDANCE,
-        f"The image MUST feature this character: {character_description}",
-        f"Scene: {character_description} is {scene_description}",
-    ]
-    return "\n\n".join(prompt_sections)
+    return (
+        f"A minimalist, hand-drawn digital illustration of {character_description} "
+        f"{scene_description} {BLOG_IMAGE_STYLE_GUIDANCE}"
+    )
 
 
 def _extract_response_text(response: Any) -> str:
