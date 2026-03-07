@@ -259,6 +259,12 @@ class AgentEnv(BaseModel):
         description="The LLM model to use for the root agent",
     )
 
+    custom_api_base: str | None = Field(
+        default=None,
+        alias="CUSTOM_API_BASE",
+        description="Custom API base URL for LiteLLM compatible endpoints",
+    )
+
     model_config = ConfigDict(
         populate_by_name=True,
         extra="ignore",

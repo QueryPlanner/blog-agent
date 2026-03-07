@@ -29,18 +29,37 @@ agent_env = initialize_environment(AgentEnv, print_config=False)
 model_name = agent_env.root_agent_model
 model: Any = model_name
 
-# Explicitly use LiteLlm for OpenRouter or other provider-prefixed models
-# that might not be auto-detected by ADK's registry.
-if model_name.lower().startswith("openrouter/") or "/" in model_name:
+# Explicitly use LiteLlm for custom API base, OpenRouter or
+# other provider-prefixed models that might not be auto-detected by ADK's registry.
+if (
+    agent_env.custom_api_base
+    or model_name.lower().startswith("openrouter/")
+    or "/" in model_name
+):
     try:
         from google.adk.models import LiteLlm
 
         logger.info(f"Using LiteLlm for model: {model_name}")
-        model = LiteLlm(model=model_name)
+
+        litellm_kwargs = {}
+        if agent_env.custom_api_base:
+            litellm_kwargs["api_base"] = agent_env.custom_api_base
+            # LiteLLM requires an API key, even if local server ignores it
+            litellm_kwargs["api_key"] = "dummy-local-key"
+            logger.info(f"Using custom API base: {agent_env.custom_api_base}")
+
+            # Add 'openai/' prefix to treat custom endpoints as OpenAI-compatible
+            if "/" in model_name and not model_name.startswith("openai/"):
+                # E.g., 'qwen/qwen3.5-9b' -> 'openai/qwen/qwen3.5-9b'
+                model_name = f"openai/{model_name}"
+            elif "/" not in model_name:
+                model_name = f"openai/{model_name}"
+
+        model = LiteLlm(model=model_name, **litellm_kwargs)
     except ImportError:
         logger.warning(
             "LiteLlm not available, falling back to string model name. "
-            "OpenRouter models may not work."
+            "Custom endpoints or OpenRouter models may not work."
         )
 
 # Blog Writer Agent - responsible for writing and saving blog content
