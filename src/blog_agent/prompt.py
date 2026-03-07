@@ -12,7 +12,7 @@ def return_description_root() -> str:
 
 def return_description_writer() -> str:
     """Description for the blog writer agent."""
-    return "An agent that writes blog posts and creates one related hero image"
+    return "An agent that writes blog posts and creates 3-5 related hero/section images"
 
 
 def return_description_publisher() -> str:
@@ -25,17 +25,17 @@ def return_instruction_writer() -> str:
 
     The writer agent is responsible for:
     1. Creating blog content based on user input
-    2. Generating one related image using the generate_blog_image tool
+    2. Generating 3-5 related images using the generate_blog_image tool
     3. Saving the content to an artifact using save_blog_content tool
     """
     instruction = f"""
 You are the Blog Writer Agent. Your job is to write engaging blog posts and save
-them for publishing with one related image.
+them for publishing with related images.
 
 # Your Responsibilities
 
 1. Write blog posts based on the user's topic and content requirements
-2. Generate exactly one related blog image using the generate_blog_image tool
+2. Generate 3 to 5 related blog images using the generate_blog_image tool
 3. Format the blog with proper YAML frontmatter (ensure title is wrapped
    in double quotes)
 4. Save the completed blog using the save_blog_content tool
@@ -60,21 +60,21 @@ Then write the blog content in markdown.
 
 # Image Requirements
 
-- Create exactly one image that fits the blog topic.
-- Use the generate_blog_image tool before saving the blog content.
-- The image should feel like a blog hero illustration, not a literal stock photo.
-- Use this markdown path pattern in the blog body: `./images/your-slug.png`
-- Place the image near the top of the article, after the opening paragraph.
+- You MUST determine the appropriate number of images (between 3 and 5) that fit the
+  blog topic and length.
+- Use the generate_blog_image tool multiple times (once for each image) BEFORE
+  saving the blog content.
+- Give each image a unique, descriptive filename (e.g., "hero-image.png",
+  "architecture-diagram.png", "conclusion-art.png").
+- The images should feel like blog illustrations, not literal stock photos.
+- Place the images appropriately throughout the article (e.g., one hero image at
+  the top, others breaking up long text sections).
+- Use this markdown path pattern in the blog body: `./images/your-chosen-filename.png`
 - Use a normal markdown image line:
-  ![Meaningful alt text](./images/your-slug.png)
-- The visual style should feel editorial, minimalist, and slightly playful.
-- Prefer hand-drawn digital illustration over photorealism.
-- Use wobbly ink-like lines, simple character or object shapes, and a limited
-  color palette.
-- Add a subtle grainy or marker-like texture so the image feels illustrated
-  rather than polished corporate vector art.
-- When helpful, include one bold visual accent or burst of energy behind the
-  main subject to make the composition feel lively.
+  ![Meaningful alt text](./images/your-chosen-filename.png)
+- The visual style should feel minimalist, hand-drawn digital illustration.
+- The art style should have wobbly ink lines and a grainy, marker-like texture
+  with a limited color palette.
 
 # Writing Style
 
@@ -97,16 +97,17 @@ Then write the blog content in markdown.
 
 # Important
 
-Before saving the blog, you MUST call the generate_blog_image tool with:
+Before saving the blog, you MUST call the generate_blog_image tool 3 to 5 times with:
 - title: The blog title
-- slug: A URL-friendly slug
-- image_prompt: A concise image brief that matches the article
+- image_filename: A unique, URL-friendly filename ending in .png (e.g., "hero.png")
+- image_prompt: A concise image brief that matches the article section
 - alt_text: Clear descriptive alt text for the generated image
 
-Then you MUST include the generated image in the markdown body.
+Then you MUST include all the generated images in the markdown body using their
+respective filenames.
 
 After that, you MUST call the save_blog_content tool with:
-- content: The complete markdown (including frontmatter)
+- content: The complete markdown (including frontmatter and image markdown)
 - title: The blog title
 - slug: A URL-friendly slug
 

@@ -13,7 +13,6 @@ from PIL import Image
 
 from blog_agent.tools import (
     BLOG_ARTIFACT_FILENAME,
-    BLOG_IMAGE_ARTIFACT_FILENAME,
     generate_blog_image,
     save_blog_content,
 )
@@ -213,22 +212,24 @@ class TestGenerateBlogImage:
             result = await generate_blog_image(
                 tool_context=tool_context,  # type: ignore[arg-type]
                 title="A Test Blog",
-                slug="a-test-blog",
                 image_prompt="A hand-drawn illustration about reliable systems",
                 alt_text="Hand-drawn illustration about reliable systems",
+                image_filename="hero.png",
             )
 
         assert result["status"] == "success"
         assert result["image_markdown"] == (
-            "![Hand-drawn illustration about reliable systems]"
-            "(./images/a-test-blog.png)"
+            "![Hand-drawn illustration about reliable systems](./images/hero.png)"
         )
-        assert state["image_markdown_path"] == "./images/a-test-blog.png"
         assert (
-            state["image_alt_text"] == "Hand-drawn illustration about reliable systems"
+            state["generated_images"][0]["image_markdown_path"] == "./images/hero.png"
+        )
+        assert (
+            state["generated_images"][0]["alt_text"]
+            == "Hand-drawn illustration about reliable systems"
         )
 
-        image_artifact = tool_context._saved_artifacts[BLOG_IMAGE_ARTIFACT_FILENAME]
+        image_artifact = tool_context._saved_artifacts["hero.png"]
         assert image_artifact.inline_data is not None
         assert image_artifact.inline_data.mime_type == "image/png"
 
@@ -258,9 +259,9 @@ class TestGenerateBlogImage:
             await generate_blog_image(
                 tool_context=tool_context,  # type: ignore[arg-type]
                 title="A Test Blog",
-                slug="a-test-blog",
                 image_prompt="A hand-drawn illustration about reliable systems",
                 alt_text="Hand-drawn illustration about reliable systems",
+                image_filename="hero.png",
             )
 
-        assert "Saved blog image to artifact" in caplog.text
+        assert "Saved blog image hero.png to artifact" in caplog.text

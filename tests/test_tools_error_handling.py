@@ -100,9 +100,9 @@ class TestGenerateBlogImageErrors:
         result = await generate_blog_image(
             tool_context=tool_context,  # type: ignore[arg-type]
             title="Test title",
-            slug="test-title",
             image_prompt="Test prompt",
             alt_text="Test alt text",
+            image_filename="test-title.png",
         )
 
         assert result["status"] == "error"
@@ -139,9 +139,9 @@ class TestGenerateBlogImageErrors:
             result = await generate_blog_image(
                 tool_context=tool_context,  # type: ignore[arg-type]
                 title="Test title",
-                slug="test-title",
                 image_prompt="Test prompt",
                 alt_text="Test alt text",
+                image_filename="test-title.png",
             )
 
         assert result["status"] == "error"

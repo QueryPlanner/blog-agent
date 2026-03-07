@@ -16,17 +16,14 @@ logger = logging.getLogger(__name__)
 
 GITHUB_API_URL = "https://api.github.com"
 BLOG_ARTIFACT_FILENAME = "blog_content.md"
-BLOG_IMAGE_ARTIFACT_FILENAME = "blog_image.png"
 BLOG_IMAGE_DIRECTORY_NAME = "images"
 BLOG_IMAGE_MIME_TYPE = "image/png"
-BLOG_IMAGE_PATH_TEMPLATE = "./images/{slug}.png"
+BLOG_IMAGE_PATH_TEMPLATE = "./images/{image_filename}"
 DEFAULT_BLOG_IMAGE_MODEL = "gemini-3.1-flash-image-preview"
 BLOG_IMAGE_STYLE_GUIDANCE = (
-    "Use an editorial, minimalist, slightly playful illustration style. Favor "
-    "hand-drawn digital artwork over photorealism, with wobbly ink-like lines, "
-    "simple shapes, a limited color palette, and a subtle grainy or "
-    "marker-like texture. When it fits the composition, add one bold visual "
-    "accent or burst of energy behind the main subject."
+    "A minimalist, hand-drawn digital illustration. The art style should "
+    "have wobbly ink lines and a grainy, marker-like texture with a limited "
+    "color palette."
 )
 
 
@@ -71,14 +68,14 @@ def _get_blog_image_model() -> str:
     return os.getenv("BLOG_IMAGE_MODEL", DEFAULT_BLOG_IMAGE_MODEL)
 
 
-def _build_blog_image_markdown_path(slug: str) -> str:
+def _build_blog_image_markdown_path(image_filename: str) -> str:
     """Build the markdown image path used inside the blog post."""
-    return BLOG_IMAGE_PATH_TEMPLATE.format(slug=slug)
+    return BLOG_IMAGE_PATH_TEMPLATE.format(image_filename=image_filename)
 
 
-def _build_blog_image_repo_path(content_path: str, slug: str) -> str:
+def _build_blog_image_repo_path(content_path: str, image_filename: str) -> str:
     """Build the repository path for the generated image asset."""
-    return f"{content_path}/{BLOG_IMAGE_DIRECTORY_NAME}/{slug}.png"
+    return f"{content_path}/{BLOG_IMAGE_DIRECTORY_NAME}/{image_filename}"
 
 
 def _build_image_generation_prompt(title: str, image_prompt: str) -> str:
@@ -269,11 +266,13 @@ async def save_blog_content(
 async def generate_blog_image(
     tool_context: ToolContext,
     title: str,
-    slug: str,
     image_prompt: str,
     alt_text: str,
+    image_filename: str,
 ) -> dict[str, Any]:
-    """Generate one blog image and save it as an artifact for publishing."""
+    """Generate one blog image and save it as an artifact for publishing.
+    Can be called multiple times to generate multiple images.
+    """
     gemini_api_key = os.getenv("GEMINI_API_KEY")
     if not gemini_api_key:
         return {
@@ -305,19 +304,25 @@ async def generate_blog_image(
             data=image_bytes,
             mime_type=BLOG_IMAGE_MIME_TYPE,
         )
-        version = await tool_context.save_artifact(
-            BLOG_IMAGE_ARTIFACT_FILENAME, artifact
-        )
+        version = await tool_context.save_artifact(image_filename, artifact)
 
-        image_markdown_path = _build_blog_image_markdown_path(slug)
+        image_markdown_path = _build_blog_image_markdown_path(image_filename)
         image_markdown = f"![{alt_text}]({image_markdown_path})"
 
-        tool_context.state["image_alt_text"] = alt_text
-        tool_context.state["image_markdown_path"] = image_markdown_path
-        tool_context.state["image_file_name"] = f"{slug}.png"
-        tool_context.state["image_prompt"] = image_prompt
+        # Initialize the generated_images list in state if it doesn't exist
+        if "generated_images" not in tool_context.state:
+            tool_context.state["generated_images"] = []
 
-        logger.info(f"Saved blog image to artifact version {version}")
+        tool_context.state["generated_images"].append(
+            {
+                "image_filename": image_filename,
+                "alt_text": alt_text,
+                "image_markdown_path": image_markdown_path,
+                "image_prompt": image_prompt,
+            }
+        )
+
+        logger.info(f"Saved blog image {image_filename} to artifact version {version}")
 
         return {
             "status": "success",
@@ -325,6 +330,7 @@ async def generate_blog_image(
             "image_markdown": image_markdown,
             "image_path": image_markdown_path,
             "alt_text": alt_text,
+            "image_filename": image_filename,
         }
 
     except Exception as e:
@@ -433,25 +439,31 @@ async def publish_blog_to_github(
                 "details": resp.text,
             }
 
-        # 4. Upload the generated image first when one exists
-        image_file_path = None
-        image_artifact = await tool_context.load_artifact(BLOG_IMAGE_ARTIFACT_FILENAME)
-        image_blob = None if image_artifact is None else image_artifact.inline_data
-        image_bytes = None if image_blob is None else image_blob.data
+        # 4. Upload the generated images if any exist
+        generated_images = tool_context.state.get("generated_images", [])
+        uploaded_image_paths = []
 
-        if image_bytes:
-            slug = str(tool_context.state.get("slug", file_name.removesuffix(".md")))
-            image_file_path = _build_blog_image_repo_path(content_path, slug)
-            image_commit_message = f"{commit_message} (image)"
+        for img_info in generated_images:
+            image_filename = img_info["image_filename"]
+            image_artifact = await tool_context.load_artifact(image_filename)
+            image_blob = None if image_artifact is None else image_artifact.inline_data
+            image_bytes = None if image_blob is None else image_blob.data
 
-            _upload_file_to_github(
-                base_url=base_url,
-                headers=headers,
-                branch_name=branch_name,
-                file_path=image_file_path,
-                file_bytes=image_bytes,
-                commit_message=image_commit_message,
-            )
+            if image_bytes:
+                image_file_path = _build_blog_image_repo_path(
+                    content_path, image_filename
+                )
+                image_commit_message = f"{commit_message} ({image_filename})"
+
+                _upload_file_to_github(
+                    base_url=base_url,
+                    headers=headers,
+                    branch_name=branch_name,
+                    file_path=image_file_path,
+                    file_bytes=image_bytes,
+                    commit_message=image_commit_message,
+                )
+                uploaded_image_paths.append(image_file_path)
 
         # 5. Create or update the markdown file with exact content from artifact
         _upload_file_to_github(
@@ -511,7 +523,7 @@ async def publish_blog_to_github(
             "pr_url": pr_url,
             "branch": branch_name,
             "file_path": full_file_path,
-            "image_file_path": image_file_path,
+            "image_file_paths": uploaded_image_paths,
         }
 
     except GitHubError as e:

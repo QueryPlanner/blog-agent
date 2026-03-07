@@ -9,7 +9,6 @@ from google.genai import types
 
 from blog_agent.tools import (
     BLOG_ARTIFACT_FILENAME,
-    BLOG_IMAGE_ARTIFACT_FILENAME,
     publish_blog_to_github,
 )
 
@@ -370,8 +369,12 @@ async def test_publish_blog_uploads_generated_image(
         data=b"fake-png-bytes",
         mime_type="image/png",
     )
+    # Mock multiple images generated
+    tool_context_with_artifact.state["generated_images"] = [
+        {"image_filename": "hero.png"}
+    ]
     await tool_context_with_artifact.save_artifact(
-        BLOG_IMAGE_ARTIFACT_FILENAME,
+        "hero.png",
         image_artifact,
     )
 
@@ -408,13 +411,13 @@ async def test_publish_blog_uploads_generated_image(
         )
 
     assert result["status"] == "success"
-    assert result["image_file_path"] == "src/data/blog/images/test-blog.png"
+    assert result["image_file_paths"] == ["src/data/blog/images/hero.png"]
     assert mock_put.call_count == 2
 
     first_put_payload = mock_put.call_args_list[0].kwargs["json"]
     second_put_payload = mock_put.call_args_list[1].kwargs["json"]
 
-    assert first_put_payload["message"] == "feat: add test post (image)"
+    assert first_put_payload["message"] == "feat: add test post (hero.png)"
     assert base64.b64decode(first_put_payload["content"]) == b"fake-png-bytes"
     assert base64.b64decode(second_put_payload["content"]).decode("utf-8") == (
         "# Test Blog\n\nThis is the blog content."
