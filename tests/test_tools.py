@@ -212,7 +212,8 @@ class TestGenerateBlogImage:
             result = await generate_blog_image(
                 tool_context=tool_context,  # type: ignore[arg-type]
                 title="A Test Blog",
-                image_prompt="A hand-drawn illustration about reliable systems",
+                character_description="A young boy with messy red hair",
+                scene_description="Fixing a server",
                 alt_text="Hand-drawn illustration about reliable systems",
                 image_filename="hero.png",
             )
@@ -259,7 +260,8 @@ class TestGenerateBlogImage:
             await generate_blog_image(
                 tool_context=tool_context,  # type: ignore[arg-type]
                 title="A Test Blog",
-                image_prompt="A hand-drawn illustration about reliable systems",
+                character_description="A young boy with messy red hair",
+                scene_description="Fixing a server",
                 alt_text="Hand-drawn illustration about reliable systems",
                 image_filename="hero.png",
             )

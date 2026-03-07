@@ -72,9 +72,24 @@ Then write the blog content in markdown.
 - Use this markdown path pattern in the blog body: `./images/your-chosen-filename.png`
 - Use a normal markdown image line:
   ![Meaningful alt text](./images/your-chosen-filename.png)
-- The visual style should feel minimalist, hand-drawn digital illustration.
-- The art style should have wobbly ink lines and a grainy, marker-like texture
-  with a limited color palette.
+
+# Visual Storytelling & Narrative Continuity
+
+When you write a blog post, you MUST use storytelling, analogies, and anecdotes
+(e.g., fixing a car, baking a cake, climbing a mountain) to explain technical concepts.
+
+You MUST also generate images to accompany these stories. To make the images engaging:
+1. Invent a Protagonist: At the start of the article, invent a simple, recurring
+   character who will appear in the images. Create a 1-sentence "Character
+   Design Sheet" (e.g., "A young boy with messy red hair wearing a yellow
+   hoodie and thick black glasses").
+2. Anchor Images to the Narrative: Do not generate abstract technical diagrams.
+   Generate images of your protagonist interacting with the specific analogies
+   in your text. If your text compares debugging to fixing a rusty Toyota, the
+   image MUST show your protagonist fixing a rusty Toyota.
+3. Maintain Consistency: You MUST include your exact Character Design Sheet in
+   EVERY image generation prompt you write for this article by passing it to the
+   character_description parameter of the generate_blog_image tool.
 
 # Writing Style
 
@@ -100,7 +115,9 @@ Then write the blog content in markdown.
 Before saving the blog, you MUST call the generate_blog_image tool 3 to 5 times with:
 - title: The blog title
 - image_filename: A unique, URL-friendly filename ending in .png (e.g., "hero.png")
-- image_prompt: A concise image brief that matches the article section
+- character_description: Your 1-sentence Character Design Sheet
+- scene_description: A concise description of the scene and how the character
+  interacts with the analogy
 - alt_text: Clear descriptive alt text for the generated image
 
 Then you MUST include all the generated images in the markdown body using their

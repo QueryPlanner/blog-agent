@@ -21,9 +21,10 @@ BLOG_IMAGE_MIME_TYPE = "image/png"
 BLOG_IMAGE_PATH_TEMPLATE = "./images/{image_filename}"
 DEFAULT_BLOG_IMAGE_MODEL = "gemini-3.1-flash-image-preview"
 BLOG_IMAGE_STYLE_GUIDANCE = (
-    "A minimalist, hand-drawn digital illustration. The art style should "
-    "have wobbly ink lines and a grainy, marker-like texture with a limited "
-    "color palette."
+    "Hand-drawn digital illustration, whiteboard doodle style, white background, "
+    "black ink outlines. Mostly grayscale shading, but featuring one or two "
+    "bright, vibrant accent colors to highlight the main action. Cute, "
+    "whimsical comic style, tech humor."
 )
 
 
@@ -78,18 +79,16 @@ def _build_blog_image_repo_path(content_path: str, image_filename: str) -> str:
     return f"{content_path}/{BLOG_IMAGE_DIRECTORY_NAME}/{image_filename}"
 
 
-def _build_image_generation_prompt(title: str, image_prompt: str) -> str:
+def _build_image_generation_prompt(
+    title: str, character_description: str, scene_description: str
+) -> str:
     """Build a detailed prompt for the blog image generator."""
     prompt_sections = [
-        f'Create one editorial illustration for the blog post titled "{title}".',
-        f"Image brief: {image_prompt}",
-        "Match this visual style as closely as possible:",
+        f'Create one illustration for the blog post titled "{title}".',
+        "Match this visual style exactly:",
         BLOG_IMAGE_STYLE_GUIDANCE,
-        (
-            "Return a clean single illustration with no watermark, no product UI, "
-            "and no extra border. The image should feel polished enough for a blog "
-            "hero image."
-        ),
+        f"The image MUST feature this character: {character_description}",
+        f"Scene: {character_description} is {scene_description}",
     ]
     return "\n\n".join(prompt_sections)
 
@@ -266,7 +265,8 @@ async def save_blog_content(
 async def generate_blog_image(
     tool_context: ToolContext,
     title: str,
-    image_prompt: str,
+    character_description: str,
+    scene_description: str,
     alt_text: str,
     image_filename: str,
 ) -> dict[str, Any]:
@@ -281,7 +281,11 @@ async def generate_blog_image(
         }
 
     image_model = _get_blog_image_model()
-    full_prompt = _build_image_generation_prompt(title=title, image_prompt=image_prompt)
+    full_prompt = _build_image_generation_prompt(
+        title=title,
+        character_description=character_description,
+        scene_description=scene_description,
+    )
 
     try:
         client = genai.Client()
@@ -318,7 +322,8 @@ async def generate_blog_image(
                 "image_filename": image_filename,
                 "alt_text": alt_text,
                 "image_markdown_path": image_markdown_path,
-                "image_prompt": image_prompt,
+                "character_description": character_description,
+                "scene_description": scene_description,
             }
         )
 

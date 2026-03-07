@@ -100,7 +100,8 @@ class TestGenerateBlogImageErrors:
         result = await generate_blog_image(
             tool_context=tool_context,  # type: ignore[arg-type]
             title="Test title",
-            image_prompt="Test prompt",
+            character_description="Test character",
+            scene_description="Test scene",
             alt_text="Test alt text",
             image_filename="test-title.png",
         )
@@ -139,7 +140,8 @@ class TestGenerateBlogImageErrors:
             result = await generate_blog_image(
                 tool_context=tool_context,  # type: ignore[arg-type]
                 title="Test title",
-                image_prompt="Test prompt",
+                character_description="Test character",
+                scene_description="Test scene",
                 alt_text="Test alt text",
                 image_filename="test-title.png",
             )
