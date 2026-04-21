@@ -14,6 +14,27 @@ We believe you should own your blog_agents. This template is designed to strip a
 - 🚀 **Modern Stack**: Python 3.13, `uv`, `fastapi`, `asyncpg`.
 - 💾 **Production Persistence**: Postgres-backed sessions out of the box.
 
+## Quick Demo
+
+Want to see it in action? Here's a minimal example:
+
+```python
+from blog_agent import BlogAgent
+
+# Initialize your agent
+agent = BlogAgent(
+    name="my-blog-agent",
+    database_url="postgresql://...",
+    llm_provider="openrouter"
+)
+
+# Start the server
+if __name__ == "__main__":
+    agent.run(host="0.0.0.0", port=8080)
+```
+
+Then visit `http://localhost:8080/docs` for the interactive API documentation.
+
 ## Quickstart
 
 ### Prerequisites
